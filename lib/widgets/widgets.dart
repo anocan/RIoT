@@ -347,6 +347,7 @@ Future sendResetEmail(
         ..showSnackBar(text);
     }
   } on FirebaseAuthException catch (e) {
+    //print(e);
     final text = notificationBar(text: errorGenerator(e.code));
     if (context.mounted) {
       ScaffoldMessenger.of(context)

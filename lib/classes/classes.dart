@@ -9,6 +9,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:riot/pages/admin_panel.dart';
 import 'package:riot/pages/credits.dart';
 import 'package:riot/pages/home.dart';
@@ -265,16 +266,30 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                       text: "Log Out",
                       icon: Icons.exit_to_app_rounded,
                       onTap: () {
-                        FirebaseAuth.instance.signOut().then((value) {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const SignIn()));
-                          Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (_) => const SignIn()),
-                              (route) => false);
-                        });
+                        try {
+                          FirebaseAuth.instance.signOut().then((value) {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const SignIn()));
+                            Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const SignIn()),
+                                (route) => false);
+                          });
+                        } on PlatformException catch (e) {
+                          if (e.code == 'firebase_auth/keychain-error') {
+                            print('Error details: ${e.details}');
+
+                            // Print NSError.userInfo dictionary
+                            if (e.details != null &&
+                                e.details['NSErrorUserInfo'] != null) {
+                              print('UserInfo dictionary:');
+                              print(e.details['NSErrorUserInfo']);
+                            }
+                          }
+                        }
                       },
                       isLogOut: true),
                   const Text("v1.0.0"),
