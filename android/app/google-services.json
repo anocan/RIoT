@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "352174878762",
+    "project_id": "riot-4n4n1f",
+    "storage_bucket": "riot-4n4n1f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352174878762:android:b07895416a89849121d353",
+        "android_client_info": {
+          "package_name": "com.ras.riot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDptLzu8BVCRNB2Gg6ZI_eclNrscaZWsY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
