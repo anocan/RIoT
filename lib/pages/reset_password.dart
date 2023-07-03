@@ -1,19 +1,16 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:riot/pages/sign_in.dart';
 import 'package:riot/widgets/widgets.dart';
 
-class SignUp extends StatefulWidget {
-  const SignUp({super.key});
+class ResetPassword extends StatefulWidget {
+  const ResetPassword({super.key});
 
   @override
-  State<SignUp> createState() => _SignUpState();
+  State<ResetPassword> createState() => _ResetPasswordState();
 }
 
-class _SignUpState extends State<SignUp> {
-  final TextEditingController _userNameTextController = TextEditingController();
+class _ResetPasswordState extends State<ResetPassword> {
   final TextEditingController _emailTextController = TextEditingController();
-  final TextEditingController _passwordTextController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +34,7 @@ class _SignUpState extends State<SignUp> {
             },
           ),
           title: const Text(
-            "Sign Up",
+            "Reset Password",
             style: TextStyle(
                 fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
           ),
@@ -62,25 +59,14 @@ class _SignUpState extends State<SignUp> {
                   const SizedBox(
                     height: 20,
                   ),
-                  authTextField("Enter Username", Icons.person_outline, false,
-                      _userNameTextController),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  authTextField("Enter an Email Address", Icons.email_outlined,
+                  authTextField("Enter an Email Address", Icons.person_outline,
                       false, _emailTextController),
                   const SizedBox(
                     height: 20,
                   ),
-                  authTextField("Enter a Password", Icons.lock_outlined, true,
-                      _passwordTextController),
-                  const SizedBox(
-                    height: 25,
-                  ),
-                  authButton(context, 'Sign Up', () {
-                    createAccount(
-                        _emailTextController, _passwordTextController, context);
-                  })
+                  authButton(context, 'Send Reset Email', () {
+                    sendResetEmail(_emailTextController, context);
+                  }),
                 ],
               ),
             ),

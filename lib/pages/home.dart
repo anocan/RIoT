@@ -21,6 +21,10 @@ class _HomeState extends State<Home> {
             print("Logged Out Succesfully"); // WIP
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const SignIn()));
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const SignIn()),
+                (route) => false);
           });
         },
       )),

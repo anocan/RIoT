@@ -1,6 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:riot/pages/home.dart';
+import 'package:riot/pages/reset_password.dart';
 import 'package:riot/widgets/widgets.dart';
 import 'package:riot/pages/sign_up.dart';
 
@@ -30,14 +29,14 @@ class _SignInState extends State<SignIn> {
         child: SingleChildScrollView(
             child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                    20, MediaQuery.of(context).size.height * 0.2, 20, 0),
+                    20, MediaQuery.of(context).size.height * 0.15, 20, 0),
                 child: Column(
                   children: <Widget>[
                     logoWidget("assets/images/ras-ieee.png"),
                     const SizedBox(
                       height: 30,
                     ),
-                    authTextField("Username", Icons.person_2_outlined, false,
+                    authTextField("Email", Icons.email_outlined, false,
                         _emailTextController),
                     const SizedBox(
                       height: 20,
@@ -45,22 +44,12 @@ class _SignInState extends State<SignIn> {
                     authTextField("Password", Icons.lock_outline, true,
                         _passwordTextController),
                     const SizedBox(
-                      height: 20,
+                      height: 10,
                     ),
-                    authButton(context, true, () {
-                      FirebaseAuth.instance
-                          .signInWithEmailAndPassword(
-                              email: _emailTextController.text,
-                              password: _passwordTextController.text)
-                          .then((value) {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const Home()));
-                      }).onError((error, stackTrace) {
-                        print(
-                            "Sign In Failed with Error: ${error.toString()}"); // WIP
-                      });
+                    resetPasswordButton(),
+                    authButton(context, 'Log In', () {
+                      signInAccount(_emailTextController,
+                          _passwordTextController, context);
                     }),
                     signUpButton(),
                   ],
@@ -85,6 +74,26 @@ class _SignInState extends State<SignIn> {
           child: const Text(
             "Sign Up",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        )
+      ],
+    );
+  }
+
+  Row resetPasswordButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const ResetPassword()));
+          },
+          child: const Text(
+            'Forget Password?',
+            style: TextStyle(
+                fontSize: 14, color: Colors.white, fontWeight: FontWeight.bold),
           ),
         )
       ],
