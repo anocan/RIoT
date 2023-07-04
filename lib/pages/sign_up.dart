@@ -78,9 +78,24 @@ class _SignUpState extends State<SignUp> {
                     height: 25,
                   ),
                   authButton(context, 'Sign Up', () {
+                    //FirebaseAuth.instance.signOut();
+                    FirebaseAuth.instance.userChanges().listen((User? user) {
+                      if (user == null) {
+                        //print('User is currently signed out!');
+                      } else {
+                        () async {
+                          //print('User is signed in!');
+                          await FirebaseAuth.instance.signOut();
+                        };
+                      }
+                    });
                     createAccount(
-                        _emailTextController, _passwordTextController, context);
-                  })
+                      _emailTextController,
+                      _passwordTextController,
+                      _userNameTextController,
+                      context,
+                    );
+                  }),
                 ],
               ),
             ),

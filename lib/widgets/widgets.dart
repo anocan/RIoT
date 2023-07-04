@@ -1,7 +1,14 @@
+/// RIoT
+/// Custom
+/// Widgets
+/// (rcw)
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:riot/pages/home.dart';
 import 'package:riot/pages/sign_in.dart';
+import 'package:riot/classes/classes.dart' as rcc;
 
 Image logoWidget(String imageName) {
   return Image.asset(
@@ -73,7 +80,7 @@ SnackBar notificationBar(
   return SnackBar(
       action: label != null
           ? SnackBarAction(
-              label: label ?? '',
+              label: label,
               onPressed: () {
                 onTap!() ?? () {};
               })
@@ -91,15 +98,55 @@ SnackBar notificationBar(
       ));
 }
 
-Future createAccount(TextEditingController emailController,
-    TextEditingController passwordController, BuildContext context) async {
+Future updateUser({required String userName, required String email}) async {
+  final userId = FirebaseAuth.instance.currentUser!.uid;
+  final docUser = FirebaseFirestore.instance.collection('users').doc(userId);
+
+  final user = rcc.User(
+    id: docUser.id,
+    userName: userName,
+    email: email,
+  );
+  final json = user.toJson();
+
+  await docUser.set(json);
+}
+
+bool regExpValidation({String password = '', String userName = ''}) {
+  final passwordRegExp = RegExp(
+      r'^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?!.*[^a-zA-Z0-9@#$*+!=])(.{6,18})$');
+  final userNameRegExp = RegExp(r'^(?=.*[a-zA-Z])(?!.*[^a-zA-Z0-9])(.{6,12})$');
+  bool check =
+      passwordRegExp.hasMatch(password) || userNameRegExp.hasMatch(userName);
+
+  return check;
+}
+
+bool validateForm(String password, String userName) {
+  if (!regExpValidation(userName: userName)) {
+    throw rcc.LocalException(exception: "weak-username");
+  }
+  if (!regExpValidation(password: password)) {
+    throw rcc.LocalException(exception: "weak-password");
+  }
+
+  return true;
+}
+
+Future createAccount(
+    TextEditingController emailController,
+    TextEditingController passwordController,
+    TextEditingController userNameController,
+    BuildContext context) async {
   try {
+    validateForm(passwordController.text, userNameController.text);
     await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: emailController.text, password: passwordController.text);
     sendVerificationEmail();
+    await updateUser(
+        userName: userNameController.text, email: emailController.text);
     final text =
         notificationBar(text: "Account created, please verify your email.");
-
     if (context.mounted) {
       ScaffoldMessenger.of(context)
         ..removeCurrentSnackBar()
@@ -108,7 +155,12 @@ Future createAccount(TextEditingController emailController,
           context, MaterialPageRoute(builder: (context) => const SignIn()));
     }
   } on FirebaseAuthException catch (e) {
-    final text = notificationBar(text: fireBaseErrors(e.code));
+    final text = notificationBar(text: errorGenerator(e.code));
+    ScaffoldMessenger.of(context)
+      ..removeCurrentSnackBar()
+      ..showSnackBar(text);
+  } on rcc.LocalException catch (e) {
+    final text = notificationBar(text: errorGenerator(e.exception));
     ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
       ..showSnackBar(text);
@@ -137,7 +189,7 @@ Future signInAccount(TextEditingController emailController,
       }
     }
   } on FirebaseAuthException catch (e) {
-    final text = notificationBar(text: fireBaseErrors(e.code));
+    final text = notificationBar(text: errorGenerator(e.code));
     ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
       ..showSnackBar(text);
@@ -160,15 +212,15 @@ Future sendResetEmail(
         ..showSnackBar(text);
     }
   } on FirebaseAuthException catch (e) {
-    print(fireBaseErrors(e.code));
-    final text = notificationBar(text: fireBaseErrors(e.code));
+    print(errorGenerator(e.code));
+    final text = notificationBar(text: errorGenerator(e.code));
     ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
       ..showSnackBar(text);
   }
 }
 
-String fireBaseErrors(String error) {
+String errorGenerator(String error) {
   switch (error) {
     case "missing-email":
       return "Please enter an email address.";
@@ -179,13 +231,17 @@ String fireBaseErrors(String error) {
     case "email-already-in-use":
       return "Provided email is already in use.";
     case "weak-password":
-      return "Given password is not strong enough.(Password should be at least 6 characters.)";
+      return "Password must contain at least one lower case, one upper case, one special character (@,#,\$,*,+,!,=) and one number in 6-18 long.";
+    case "weak-username":
+      return "Username must contain at least one character without special characters in 6-12 long.";
     case "wrong-password":
       return "Invalid password.";
     case "user-disabled":
       return "User corresponding to the given email address has been disabled, please contact us.";
     case "too-many-requests":
       return "Too many requests are send, please cool down and try again later.";
+    case "network-request-failed":
+      return "Network request failed, check your connection.";
     default:
       return "Unexpected error, please contact us.";
   }
