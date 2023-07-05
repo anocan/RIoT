@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:riot/pages/sign_in.dart';
 import 'package:riot/widgets/widgets.dart';
+import 'package:riot/themes/themes.dart' as themes;
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -45,11 +46,11 @@ class _SignUpState extends State<SignUp> {
         body: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(colors: <Color>[
-              Color(0xff1f005c),
-              Color(0xff5b0060),
-              Color(0xff870160)
+              themes.color1,
+              themes.color2,
+              themes.color3,
             ], begin: Alignment.topCenter, end: Alignment.bottomCenter),
           ),
           child: SingleChildScrollView(

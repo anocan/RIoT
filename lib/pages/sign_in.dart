@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:riot/pages/reset_password.dart';
 import 'package:riot/widgets/widgets.dart';
 import 'package:riot/pages/sign_up.dart';
+import 'package:riot/themes/themes.dart' as themes;
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -20,11 +21,11 @@ class _SignInState extends State<SignIn> {
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
             gradient: LinearGradient(colors: <Color>[
-          Color(0xff1f005c),
-          Color(0xff5b0060),
-          Color(0xff870160),
+          themes.color1, //Color(0xff1f005c),
+          themes.color2, //Color(0xff5b0060),
+          themes.color3, //Color(0xff870160),
         ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
         child: SingleChildScrollView(
             child: Padding(

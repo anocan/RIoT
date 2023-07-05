@@ -9,6 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:riot/pages/home.dart';
 import 'package:riot/pages/sign_in.dart';
 import 'package:riot/classes/classes.dart' as rcc;
+import 'dart:math' as math;
+
+Color randomColor() {
+  final color =
+      Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+  return color;
+}
 
 Image logoWidget(String imageName) {
   return Image.asset(
