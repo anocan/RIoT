@@ -147,8 +147,11 @@ Future createAccount(
     BuildContext context) async {
   try {
     validateForm(passwordController.text, userNameController.text);
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text, password: passwordController.text);
+    await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(
+            email: emailController.text, password: passwordController.text)
+        .then((result) => FirebaseAuth.instance.currentUser!
+            .updateDisplayName(userNameController.text));
     sendVerificationEmail();
     await updateUser(
         userName: userNameController.text, email: emailController.text);
@@ -252,4 +255,35 @@ String errorGenerator(String error) {
     default:
       return "Unexpected error, please contact us.";
   }
+}
+
+Wrap generateMenuItem(
+    {required BuildContext context,
+    required String text,
+    required IconData icon,
+    required Function onTap,
+    bool? isLogOut}) {
+  return Wrap(children: [
+    ListTile(
+      leading: Icon(
+        icon,
+        color: isLogOut != null ? Colors.black : Colors.white,
+        size: 32,
+      ),
+      title: Text(
+        text,
+        style: TextStyle(
+            color: isLogOut != null ? Colors.black : Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 24),
+      ),
+      onTap: () {
+        onTap();
+      },
+    ),
+    Divider(
+      color: Colors.white.withAlpha(120),
+      thickness: 3,
+    ),
+  ]);
 }
