@@ -11,12 +11,14 @@ import 'package:riot/pages/sign_in.dart';
 import 'package:riot/classes/classes.dart' as rcc;
 import 'dart:math' as math;
 
+///
 Color randomColor() {
   final color =
       Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
   return color;
 }
 
+///
 Image logoWidget(String imageName) {
   return Image.asset(
     imageName,
@@ -27,6 +29,7 @@ Image logoWidget(String imageName) {
   );
 }
 
+///
 TextField authTextField(String text, IconData icon, bool isPasswordType,
     TextEditingController controller) {
   const inputRadius = 30.0;
@@ -54,6 +57,7 @@ TextField authTextField(String text, IconData icon, bool isPasswordType,
           : TextInputType.emailAddress);
 }
 
+///
 Container authButton(BuildContext context, String text, Function onTap) {
   return Container(
     width: MediaQuery.of(context).size.width,
@@ -82,6 +86,7 @@ Container authButton(BuildContext context, String text, Function onTap) {
   );
 }
 
+///
 SnackBar notificationBar(
     {required String text, String? label, Function? onTap}) {
   return SnackBar(
@@ -105,48 +110,112 @@ SnackBar notificationBar(
       ));
 }
 
-Future updateUser({required String userName, required String email}) async {
+///
+Future updateUser({
+  bool forSignUp = false,
+  String? userName,
+  String? email,
+  String? name,
+  String? pp,
+  String? phoneNumber,
+  String? gender,
+  String? dob,
+  String? country,
+  String? cot,
+  String? favProfessor,
+  String? department,
+}) async {
   final userId = FirebaseAuth.instance.currentUser!.uid;
   final docUser = FirebaseFirestore.instance.collection('users').doc(userId);
 
+  if (forSignUp) {
+    final user = rcc.User(
+      userName: userName!,
+      email: email!,
+    );
+    final json = user.toJson();
+    await docUser.set(json);
+    return 1;
+  }
+
+  final docData = await docUser.get().then((value) {
+    Map data = value.data() as Map;
+    return data;
+  });
+
   final user = rcc.User(
     id: docUser.id,
-    userName: userName,
-    email: email,
+    userName: userName ?? docData['userName'],
+    email: email ?? docData['email'],
+    name: name ?? docData['name'],
+    pp: pp ?? docData['pp'],
+    phoneNumber: phoneNumber ?? docData['phoneNumber'],
+    gender: gender ?? docData['gender'],
+    dob: dob ?? docData['dob'],
+    country: country ?? docData['country'],
+    cot: cot ?? docData['cot'],
+    favProfessor: favProfessor ?? docData['favProfessor'],
+    department: department ?? docData['department'],
   );
+
   final json = user.toJson();
 
   await docUser.set(json);
 }
 
-bool regExpValidation({String password = '', String userName = ''}) {
+/// Only one parameter at time should be passed when calling the function
+bool regExpValidation({
+  String password = '',
+  String userName = '',
+  String name = '',
+  String pp = '',
+  String phoneNumber = '',
+  String gender = '',
+  String dob = '',
+  String country = '',
+  String cot = '',
+  String favProfessor = '',
+  String department = '',
+}) {
   final passwordRegExp = RegExp(
       r'^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?!.*[^a-zA-Z0-9@#$*+!=])(.{6,18})$');
-  final userNameRegExp = RegExp(r'^(?=.*[a-zA-Z])(?!.*[^a-zA-Z0-9])(.{6,12})$');
-  bool check =
-      passwordRegExp.hasMatch(password) || userNameRegExp.hasMatch(userName);
+  final userNameRegExp = RegExp(r'^(?=.*[a-zA-Z])(?!.*[^a-zA-Z0-9])(.{6,8})$');
+  final nameRegExp = RegExp(r'^(?!.*[^a-zA-Z])(.{6,12})$');
+
+  bool check = passwordRegExp.hasMatch(password) ||
+      userNameRegExp.hasMatch(userName) ||
+      nameRegExp.hasMatch(name);
 
   return check;
 }
 
-bool validateForm(String password, String userName) {
-  if (!regExpValidation(userName: userName)) {
+///
+bool validateForm(
+    {String password = 'null',
+    String userName = 'null',
+    String name = 'null'}) {
+  if (!regExpValidation(userName: userName) && userName != 'null') {
     throw rcc.LocalException(exception: "weak-username");
   }
-  if (!regExpValidation(password: password)) {
+  if (!regExpValidation(password: password) && password != 'null') {
     throw rcc.LocalException(exception: "weak-password");
+  }
+  if (!regExpValidation(name: name) && name != 'null') {
+    throw rcc.LocalException(exception: "invalid-name");
   }
 
   return true;
 }
 
+///
 Future createAccount(
     TextEditingController emailController,
     TextEditingController passwordController,
     TextEditingController userNameController,
     BuildContext context) async {
   try {
-    validateForm(passwordController.text, userNameController.text);
+    validateForm(
+        password: passwordController.text, userName: userNameController.text);
     await FirebaseAuth.instance
         .createUserWithEmailAndPassword(
             email: emailController.text, password: passwordController.text)
@@ -154,7 +223,9 @@ Future createAccount(
             .updateDisplayName(userNameController.text));
     sendVerificationEmail();
     await updateUser(
-        userName: userNameController.text, email: emailController.text);
+        forSignUp: true,
+        userName: userNameController.text,
+        email: emailController.text);
     final text =
         notificationBar(text: "Account created, please verify your email.");
     if (context.mounted) {
@@ -177,6 +248,7 @@ Future createAccount(
   }
 }
 
+///
 Future signInAccount(TextEditingController emailController,
     TextEditingController passwordController, BuildContext context) async {
   try {
@@ -206,11 +278,13 @@ Future signInAccount(TextEditingController emailController,
   }
 }
 
+///
 Future sendVerificationEmail() async {
   final user = FirebaseAuth.instance.currentUser!;
   await user.sendEmailVerification();
 }
 
+///
 Future sendResetEmail(
     TextEditingController controller, BuildContext context) async {
   try {
@@ -230,6 +304,7 @@ Future sendResetEmail(
   }
 }
 
+///
 String errorGenerator(String error) {
   switch (error) {
     case "missing-email":
@@ -243,7 +318,7 @@ String errorGenerator(String error) {
     case "weak-password":
       return "Password must contain at least one lower case, one upper case, one special character (@,#,\$,*,+,!,=) and one number in 6-18 long.";
     case "weak-username":
-      return "Username must contain at least one character without special characters in 6-12 long.";
+      return "Username must contain at least one character without special characters in 6-8 long.";
     case "wrong-password":
       return "Invalid password.";
     case "user-disabled":
@@ -252,11 +327,14 @@ String errorGenerator(String error) {
       return "Too many requests are send, please cool down and try again later.";
     case "network-request-failed":
       return "Network request failed, check your connection.";
+    case "invalid-name":
+      return "Name must contain only letters (lower or upper case) in 6-12 long.";
     default:
       return "Unexpected error, please contact us.";
   }
 }
 
+///
 Wrap generateMenuItem(
     {required BuildContext context,
     required String text,
@@ -286,4 +364,77 @@ Wrap generateMenuItem(
       thickness: 3,
     ),
   ]);
+}
+
+///
+Wrap generateProfileElement(
+    {required String title,
+    required bool mutable,
+    String? text,
+    BuildContext? context}) {
+  return Wrap(
+    children: [
+      Row(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+          )
+        ],
+      ),
+      Wrap(children: [
+        Row(children: [
+          Text(
+            text ?? '',
+            style: const TextStyle(
+                color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+          const Spacer(flex: 1),
+          IconButton(
+            onPressed: mutable
+                ? () {
+                    showDialog(
+                        context: context!,
+                        builder: (BuildContext context) {
+                          var textController = TextEditingController();
+                          return AlertDialog(
+                            content: Stack(
+                              children: <Widget>[
+                                TextField(
+                                  controller: textController,
+                                  decoration: InputDecoration(
+                                      suffixIcon: IconButton(
+                                    onPressed: () {
+                                      try {
+                                        validateForm(name: textController.text);
+                                        updateUser(name: textController.text);
+                                      } on rcc.LocalException catch (e) {
+                                        final text = notificationBar(
+                                            text: errorGenerator(e.exception));
+                                        ScaffoldMessenger.of(context)
+                                          ..removeCurrentSnackBar()
+                                          ..showSnackBar(text);
+                                      }
+                                      Navigator.pop(context);
+                                    },
+                                    icon: const Icon(Icons.save_outlined),
+                                  )),
+                                ),
+                              ],
+                            ),
+                          );
+                        });
+                  }
+                : () {},
+            icon: Icon(
+              mutable ? Icons.settings_rounded : Icons.do_disturb,
+              color: Colors.white.withOpacity(1),
+            ),
+          ),
+        ]),
+        Divider(color: Colors.white.withAlpha(120), thickness: 3),
+      ]),
+    ],
+  );
 }

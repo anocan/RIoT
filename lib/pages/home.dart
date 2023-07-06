@@ -1,8 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:riot/pages/sign_in.dart';
 import 'package:riot/themes/themes.dart' as themes;
-import 'package:riot/widgets/widgets.dart';
+import 'package:riot/classes/classes.dart' as rcc;
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -16,7 +14,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const NavigationDrawer(),
+      drawer: const rcc.NavigationDrawer(),
       key: scaffoldKey,
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
@@ -74,90 +72,4 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-}
-
-class NavigationDrawer extends StatelessWidget {
-  const NavigationDrawer({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => Drawer(
-          child: Container(
-        decoration: BoxDecoration(
-            gradient: LinearGradient(colors: <Color>[
-          themes.color1, //Color(0xff1f005c),
-          themes.color2, //Color(0xff5b0060),
-          themes.color3, //Color(0xff870160),
-        ], begin: Alignment.topLeft, end: Alignment.bottomRight)),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              buildHeader(context),
-              buildMenuItems(context),
-            ],
-          ),
-        ),
-      ));
-
-  Widget buildHeader(BuildContext context) => Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {},
-          child: Container(
-            padding: EdgeInsets.only(
-                top: 24 + MediaQuery.of(context).padding.top, bottom: 24),
-            child: Column(
-              children: [
-                const CircleAvatar(
-                    radius: 64,
-                    backgroundImage:
-                        AssetImage("assets/images/default-pp.jpg")),
-                const SizedBox(height: 24),
-                Text(
-                  "Hello ${FirebaseAuth.instance.currentUser!.displayName},",
-                  style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-  Widget buildMenuItems(BuildContext context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Wrap(
-          runSpacing: 8,
-          children: [
-            generateMenuItem(
-                context: context,
-                text: "Home",
-                icon: Icons.home_rounded,
-                onTap: () {
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const Home()));
-                }),
-            const SizedBox(height: 120),
-            generateMenuItem(
-                context: context,
-                text: "Log Out",
-                icon: Icons.exit_to_app_rounded,
-                onTap: () {
-                  FirebaseAuth.instance.signOut().then((value) {
-                    print("Logged Out Succesfully"); // WIP
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SignIn()));
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SignIn()),
-                        (route) => false);
-                  });
-                },
-                isLogOut: true),
-          ],
-        ),
-      );
 }
