@@ -5,7 +5,11 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:riot/classes/storage.dart';
 import 'package:riot/pages/home.dart';
 import 'package:riot/pages/sign_in.dart';
 import 'package:riot/classes/classes.dart' as rcc;
@@ -122,19 +126,25 @@ Future updateUser({
   String? dob,
   String? country,
   String? cot,
-  String? favProfessor,
   String? department,
 }) async {
   final userId = FirebaseAuth.instance.currentUser!.uid;
   final docUser = FirebaseFirestore.instance.collection('users').doc(userId);
 
   if (forSignUp) {
+    // Initialize User
     final user = rcc.User(
       userName: userName!,
       email: email!,
     );
     final json = user.toJson();
     await docUser.set(json);
+
+    // Upload and set the default profile-picture
+    ByteData byteData = await rootBundle.load('assets/images/default-pp.jpg');
+    Uint8List img = byteData.buffer.asUint8List();
+    await StoreData().saveData(file: img);
+
     return 1;
   }
 
@@ -154,7 +164,6 @@ Future updateUser({
     dob: dob ?? docData['dob'],
     country: country ?? docData['country'],
     cot: cot ?? docData['cot'],
-    favProfessor: favProfessor ?? docData['favProfessor'],
     department: department ?? docData['department'],
   );
 
@@ -165,45 +174,40 @@ Future updateUser({
 
 /// Only one parameter at time should be passed when calling the function
 bool regExpValidation({
-  String password = '',
-  String userName = '',
-  String name = '',
-  String pp = '',
-  String phoneNumber = '',
-  String gender = '',
-  String dob = '',
-  String country = '',
-  String cot = '',
-  String favProfessor = '',
-  String department = '',
+  String? password,
+  String? userName,
+  String? name,
+  String? phoneNumber,
 }) {
   final passwordRegExp = RegExp(
       r'^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?!.*[^a-zA-Z0-9@#$*+!=])(.{6,18})$');
   final userNameRegExp = RegExp(r'^(?=.*[a-zA-Z])(?!.*[^a-zA-Z0-9])(.{6,8})$');
-  final nameRegExp = RegExp(r'^(?!.*[^a-zA-Z])(.{6,12})$');
+  final nameRegExp = RegExp(r'^(?!.*[^a-zA-Zıüöçğş])(.{0,12})$');
+  final phoneNumberRegExp =
+      RegExp(r'^\(?([0-9]{3})\)?([ .-]?)([0-9]{3})\2([0-9]{4})$');
 
-  bool check = passwordRegExp.hasMatch(password) ||
-      userNameRegExp.hasMatch(userName) ||
-      nameRegExp.hasMatch(name);
-
+  bool check = passwordRegExp.hasMatch(password ?? '%%%%%%%%%%%%%%%%%%%') ||
+      userNameRegExp.hasMatch(userName ?? '%%%%%%%%%%%%%%%%%%%') ||
+      nameRegExp.hasMatch(name ?? '%%%%%%%%%%%%%%%%%%%') ||
+      phoneNumberRegExp.hasMatch(phoneNumber ?? '%%%%%%%%%%%%%%%%%%%');
   return check;
 }
 
 ///
 bool validateForm(
-    {String password = 'null',
-    String userName = 'null',
-    String name = 'null'}) {
-  if (!regExpValidation(userName: userName) && userName != 'null') {
+    {String? password, String? userName, String? name, String? phoneNumber}) {
+  if (!regExpValidation(userName: userName) && userName != null) {
     throw rcc.LocalException(exception: "weak-username");
   }
-  if (!regExpValidation(password: password) && password != 'null') {
+  if (!regExpValidation(password: password) && password != null) {
     throw rcc.LocalException(exception: "weak-password");
   }
-  if (!regExpValidation(name: name) && name != 'null') {
+  if (!regExpValidation(name: name) && name != null) {
     throw rcc.LocalException(exception: "invalid-name");
   }
-
+  if (!regExpValidation(phoneNumber: phoneNumber) && phoneNumber != null) {
+    throw rcc.LocalException(exception: "invalid-gsm");
+  }
   return true;
 }
 
@@ -296,7 +300,6 @@ Future sendResetEmail(
         ..showSnackBar(text);
     }
   } on FirebaseAuthException catch (e) {
-    print(errorGenerator(e.code));
     final text = notificationBar(text: errorGenerator(e.code));
     ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
@@ -328,7 +331,11 @@ String errorGenerator(String error) {
     case "network-request-failed":
       return "Network request failed, check your connection.";
     case "invalid-name":
-      return "Name must contain only letters (lower or upper case) in 6-12 long.";
+      return "Name must contain only letters (lower or upper case) in maximum 12 characters long.";
+    case "invalid-gsm":
+      return "Phone number must be in the following format: 5XXXXXXXXX";
+    case "no-file-found":
+      return "No file is found. Please try again.";
     default:
       return "Unexpected error, please contact us.";
   }
@@ -370,6 +377,7 @@ Wrap generateMenuItem(
 Wrap generateProfileElement(
     {required String title,
     required bool mutable,
+    required String updateItem,
     String? text,
     BuildContext? context}) {
   return Wrap(
@@ -384,57 +392,311 @@ Wrap generateProfileElement(
         ],
       ),
       Wrap(children: [
-        Row(children: [
-          Text(
-            text ?? '',
-            style: const TextStyle(
-                color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-          ),
-          const Spacer(flex: 1),
-          IconButton(
-            onPressed: mutable
-                ? () {
-                    showDialog(
-                        context: context!,
-                        builder: (BuildContext context) {
-                          var textController = TextEditingController();
-                          return AlertDialog(
-                            content: Stack(
-                              children: <Widget>[
-                                TextField(
-                                  controller: textController,
-                                  decoration: InputDecoration(
-                                      suffixIcon: IconButton(
-                                    onPressed: () {
-                                      try {
-                                        validateForm(name: textController.text);
-                                        updateUser(name: textController.text);
-                                      } on rcc.LocalException catch (e) {
-                                        final text = notificationBar(
-                                            text: errorGenerator(e.exception));
-                                        ScaffoldMessenger.of(context)
-                                          ..removeCurrentSnackBar()
-                                          ..showSnackBar(text);
-                                      }
-                                      Navigator.pop(context);
-                                    },
-                                    icon: const Icon(Icons.save_outlined),
-                                  )),
+        Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  text ?? '',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: MediaQuery.of(context!).size.width * 0.05,
+                      fontWeight: FontWeight.w500),
+                ),
+              ),
+              IconButton(
+                onPressed: mutable
+                    ? () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              var textController = TextEditingController();
+                              return AlertDialog(
+                                content: Stack(
+                                  children: <Widget>[
+                                    TextField(
+                                      controller: textController,
+                                      decoration: InputDecoration(
+                                          suffixIcon: IconButton(
+                                        onPressed: () {
+                                          try {
+                                            switch (updateItem) {
+                                              case "userName":
+                                                validateForm(
+                                                    userName:
+                                                        textController.text);
+                                                updateUser(
+                                                    userName:
+                                                        textController.text);
+                                                break;
+                                              case "name":
+                                                validateForm(
+                                                    name: textController.text);
+                                                updateUser(
+                                                    name: textController.text);
+                                                break;
+                                              case "phoneNumber":
+                                                validateForm(
+                                                    phoneNumber:
+                                                        textController.text);
+                                                updateUser(
+                                                    phoneNumber:
+                                                        textController.text);
+                                                break;
+                                            }
+                                          } on rcc.LocalException catch (e) {
+                                            final text = notificationBar(
+                                                text: errorGenerator(
+                                                    e.exception));
+                                            ScaffoldMessenger.of(context)
+                                              ..removeCurrentSnackBar()
+                                              ..showSnackBar(text);
+                                          }
+                                          Navigator.pop(context);
+                                        },
+                                        icon: const Icon(Icons.save_outlined),
+                                      )),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          );
-                        });
-                  }
-                : () {},
-            icon: Icon(
-              mutable ? Icons.settings_rounded : Icons.do_disturb,
-              color: Colors.white.withOpacity(1),
-            ),
-          ),
-        ]),
+                              );
+                            });
+                      }
+                    : () {},
+                icon: Icon(
+                  mutable ? Icons.settings_rounded : null,
+                  color: Colors.white.withOpacity(1),
+                ),
+              ),
+            ]),
         Divider(color: Colors.white.withAlpha(120), thickness: 3),
       ]),
     ],
   );
+}
+
+///
+Wrap generateProfileElementPicker({
+  required String title,
+  required bool mutable,
+  required List<String> items,
+  required String updateItem,
+  String? text,
+  BuildContext? context,
+}) {
+  return Wrap(
+    children: [
+      Row(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+          )
+        ],
+      ),
+      Wrap(children: [
+        Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  text ?? '',
+                  overflow: TextOverflow.fade,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: MediaQuery.of(context!).size.width * 0.05,
+                      fontWeight: FontWeight.w500),
+                ),
+              ),
+              IconButton(
+                onPressed: mutable
+                    ? () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                  content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  rcc.ElementPicker(
+                                    items: items,
+                                    updateItem: updateItem,
+                                  ), //
+                                ],
+                              ));
+                            });
+                      }
+                    : () {},
+                icon: Icon(
+                  mutable ? Icons.settings_rounded : null,
+                  color: Colors.white.withOpacity(1),
+                ),
+              ),
+            ]),
+        Divider(color: Colors.white.withAlpha(120), thickness: 3),
+      ]),
+    ],
+  );
+}
+
+///
+Center generatePicker(
+    BuildContext context, List<String> items, String updateItem) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: MediaQuery.of(context).size.width * 0.72,
+          height: MediaQuery.of(context).size.height * 0.2,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(120),
+              color: Colors.transparent),
+          child: CupertinoPicker(
+            diameterRatio: 1,
+            backgroundColor: Colors.transparent,
+            itemExtent: 64,
+            onSelectedItemChanged: (index) {
+              switch (updateItem) {
+                case "cot":
+                  updateUser(cot: items[index]);
+                  break;
+                case "gender":
+                  updateUser(gender: items[index]);
+                  break;
+                case "department":
+                  updateUser(department: items[index]);
+                  break;
+                case "country":
+                  updateUser(country: items[index]);
+                  break;
+              }
+            },
+            children: items.map((e) => Center(child: Text(e))).toList(),
+          ),
+        ),
+        CupertinoButton(
+          onPressed: () {},
+          child: const Text("Confirm"),
+        ),
+      ],
+    ),
+  );
+}
+
+///
+Wrap generateProfileElementDatePicker(
+    {required String title,
+    required bool mutable,
+    required String updateItem,
+    String? text,
+    BuildContext? context}) {
+  return Wrap(
+    children: [
+      Row(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+          )
+        ],
+      ),
+      Wrap(children: [
+        Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  text ?? '',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: MediaQuery.of(context!).size.width * 0.05,
+                      fontWeight: FontWeight.w500),
+                ),
+              ),
+              IconButton(
+                onPressed: mutable
+                    ? () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return const rcc.DatePicker();
+                            });
+                      }
+                    : () {},
+                icon: Icon(
+                  mutable ? Icons.settings_rounded : null,
+                  color: Colors.white.withOpacity(1),
+                ),
+              ),
+            ]),
+        Divider(color: Colors.white.withAlpha(120), thickness: 3),
+      ]),
+    ],
+  );
+}
+
+///
+Center generateDatePicker(BuildContext context) {
+  return Center(
+    child: Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(45), color: Colors.white),
+      width: MediaQuery.of(context).size.width * 0.72,
+      height: MediaQuery.of(context).size.height * 0.3,
+      child: Column(
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.03,
+          ),
+          Expanded(
+            child: CupertinoDatePicker(
+              backgroundColor: Colors.transparent,
+              mode: CupertinoDatePickerMode.date,
+              dateOrder: DatePickerDateOrder.ymd,
+              initialDateTime: DateTime(2000, 1, 1),
+              maximumDate: DateTime.now(),
+              minimumDate: DateTime(1960, 1, 1),
+              onDateTimeChanged: (DateTime newDateTime) {
+                updateUser(
+                    dob: newDateTime.toString().split(' ')[0].toString());
+              },
+            ),
+          ),
+          TextButton(
+            onPressed: () {},
+            child: const Text(
+              "Select",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+            ),
+          ),
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.02,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+///
+Future<Uint8List> pickImage(ImageSource source) async {
+  final ImagePicker imagePicker = ImagePicker();
+  XFile? file = await imagePicker.pickImage(source: source);
+  if (file != null) {
+    return await file.readAsBytes();
+  } else {
+    throw rcc.LocalException(exception: "no-file-found");
+  }
+}
+
+///
+Future<Uint8List> selectImage() async {
+  Uint8List image = await pickImage(ImageSource.gallery);
+  return image;
 }

@@ -48,15 +48,7 @@ class _HomeState extends State<Home> {
                   borderRadius: BorderRadius.circular(10),
                   color: Colors.black.withAlpha(120),
                 ),
-                child: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 36,
-                  ),
-                ),
-              )
+              ),
             ]),
       ),
       body: Container(
@@ -68,7 +60,17 @@ class _HomeState extends State<Home> {
           themes.color2, //Color(0xff5b0060),
           themes.color3, //Color(0xff870160),
         ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
-        child: SingleChildScrollView(),
+        child: const SingleChildScrollView(
+            /*
+          child: IconButton(
+              onPressed: () {
+                FirebaseAuth.instance.signOut();
+              },
+              icon: const Icon(
+                Icons.exit_to_app_rounded,
+                size: 200,
+              )),*/
+            ),
       ),
     );
   }

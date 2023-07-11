@@ -4,6 +4,7 @@
 /// (rcc)
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:riot/pages/home.dart';
 import 'package:riot/pages/profile.dart';
 import 'package:riot/pages/sign_in.dart';
@@ -13,18 +14,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riot/themes/themes.dart' as themes;
 
 class User {
-  /// id
   String id;
   final String userName;
   final String email;
   final String name;
-  final String pp; // Profile Picture
+  late final String pp; // Profile Picture
   final String phoneNumber;
   final String gender;
   final String dob; // Date of Birth
   final String country;
   final String cot; // Coffee or Tea?
-  final String favProfessor;
   final String department;
 
   User({
@@ -38,7 +37,6 @@ class User {
     this.dob = '',
     this.country = '',
     this.cot = '',
-    this.favProfessor = '',
     this.department = '',
   });
 
@@ -53,7 +51,6 @@ class User {
         'dob': dob,
         'country': country,
         'cot': cot,
-        'favProfessor': favProfessor,
         'department': department,
       };
 }
@@ -115,10 +112,10 @@ class NavigationDrawer extends StatelessWidget {
                       top: 24 + MediaQuery.of(context).padding.top, bottom: 24),
                   child: Column(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                           radius: 64,
                           backgroundImage:
-                              AssetImage("assets/images/default-pp.jpg")),
+                              NetworkImage(snapshot.data!.get('pp'))),
                       const SizedBox(height: 24),
                       Text(
                         "Hello, ${snapshot.data!.get('userName') ?? ''}",
@@ -153,7 +150,6 @@ class NavigationDrawer extends StatelessWidget {
                 icon: Icons.exit_to_app_rounded,
                 onTap: () {
                   FirebaseAuth.instance.signOut().then((value) {
-                    print("Logged Out Succesfully"); // WIP
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -168,4 +164,133 @@ class NavigationDrawer extends StatelessWidget {
           ],
         ),
       );
+}
+
+class ElementPicker extends StatefulWidget {
+  final List<String> items;
+  final String updateItem;
+  const ElementPicker({Key? key, required this.items, required this.updateItem})
+      : super(key: key);
+
+  @override
+  State<ElementPicker> createState() => _ElementPickerState();
+}
+
+class _ElementPickerState extends State<ElementPicker> {
+  int selectedIndex = 0;
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width * 0.72,
+            height: MediaQuery.of(context).size.height * 0.2,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(120),
+                color: Colors.transparent),
+            child: CupertinoPicker(
+              diameterRatio: 1,
+              backgroundColor: Colors.transparent,
+              itemExtent: 64,
+              onSelectedItemChanged: (int index) {
+                setState(() {
+                  selectedIndex = index;
+                });
+              },
+              children: widget.items
+                  .map((e) => Center(
+                          child: Text(
+                        e,
+                        textAlign: TextAlign.center,
+                      )))
+                  .toList(),
+            ),
+          ),
+          CupertinoButton(
+            onPressed: () {
+              switch (widget.updateItem) {
+                case "cot":
+                  updateUser(cot: widget.items[selectedIndex]);
+                  break;
+                case "gender":
+                  updateUser(gender: widget.items[selectedIndex]);
+                  break;
+                case "department":
+                  updateUser(department: widget.items[selectedIndex]);
+                  break;
+                case "country":
+                  updateUser(country: widget.items[selectedIndex]);
+                  break;
+              }
+              Navigator.pop(context);
+            },
+            child: const Text(
+              "Select",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DatePicker extends StatefulWidget {
+  const DatePicker({super.key});
+
+  @override
+  State<DatePicker> createState() => _DatePickerState();
+}
+
+class _DatePickerState extends State<DatePicker> {
+  var selectedDate = DateTime(2000, 1, 1);
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(45), color: Colors.white),
+        width: MediaQuery.of(context).size.width * 0.72,
+        height: MediaQuery.of(context).size.height * 0.3,
+        child: Column(
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.03,
+            ),
+            Expanded(
+              child: CupertinoDatePicker(
+                backgroundColor: Colors.transparent,
+                mode: CupertinoDatePickerMode.date,
+                dateOrder: DatePickerDateOrder.ymd,
+                initialDateTime: DateTime(2000, 1, 1),
+                maximumDate: DateTime.now(),
+                minimumDate: DateTime(1960, 1, 1),
+                onDateTimeChanged: (DateTime time) {
+                  setState(() {
+                    selectedDate = time;
+                  });
+                },
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                updateUser(
+                    dob: selectedDate.toString().split(' ')[0].toString());
+                Navigator.pop(context);
+              },
+              child: const Text(
+                "Select",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+              ),
+            ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.02,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

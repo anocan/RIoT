@@ -10,13 +10,23 @@ class LogIn extends StatefulWidget {
 class _LogInState extends State<LogIn> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-        body: Image(
-      color: Colors.red,
-      image: NetworkImage(
-          'https://upload.wikimedia.org/wikipedia/commons/6/61/Wikipedia-logo-transparent.png'),
-      width: 100,
-      height: 2000,
-    ));
+    return Scaffold(
+      body: AppBar(
+        title: const Text('a'),
+      ),
+      floatingActionButton: TextButton(
+        child: const Text('aASDASDAD'),
+        onPressed: () {
+          final snackBar = SnackBar(
+            content: const Text(
+              'aaa',
+              style: TextStyle(color: Colors.red),
+            ),
+            action: SnackBarAction(label: 'undo', onPressed: () {}),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        },
+      ),
+    );
   }
 }
