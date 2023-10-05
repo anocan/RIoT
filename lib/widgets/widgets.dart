@@ -118,6 +118,7 @@ SnackBar notificationBar(
 Future updateUser({
   bool forSignUp = false,
   String? userName,
+  String? userType,
   String? email,
   String? name,
   String? pp,
@@ -134,6 +135,7 @@ Future updateUser({
   if (forSignUp) {
     // Initialize User
     final user = rcc.User(
+      userType: "user",
       userName: userName!,
       email: email!,
     );
@@ -155,6 +157,7 @@ Future updateUser({
 
   final user = rcc.User(
     id: docUser.id,
+    userType: userType ?? docData['userType'],
     userName: userName ?? docData['userName'],
     email: email ?? docData['email'],
     name: name ?? docData['name'],

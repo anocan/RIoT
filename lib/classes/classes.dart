@@ -15,6 +15,7 @@ import 'package:riot/themes/themes.dart' as themes;
 
 class User {
   String id;
+  final String userType;
   final String userName;
   final String email;
   final String name;
@@ -29,6 +30,7 @@ class User {
   User({
     required this.userName,
     required this.email,
+    required this.userType,
     this.id = '',
     this.name = '',
     this.pp = '',
@@ -42,6 +44,7 @@ class User {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'userType': userType,
         'userName': userName,
         'email': email,
         'name': name,
@@ -130,40 +133,46 @@ class NavigationDrawer extends StatelessWidget {
               }),
         ),
       );
-  Widget buildMenuItems(BuildContext context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Wrap(
-          runSpacing: 8,
-          children: [
-            generateMenuItem(
-                context: context,
-                text: "Home",
-                icon: Icons.home_rounded,
-                onTap: () {
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const Home()));
-                }),
-            const SizedBox(height: 120),
-            generateMenuItem(
-                context: context,
-                text: "Log Out",
-                icon: Icons.exit_to_app_rounded,
-                onTap: () {
-                  FirebaseAuth.instance.signOut().then((value) {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SignIn()));
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SignIn()),
-                        (route) => false);
-                  });
-                },
-                isLogOut: true),
-          ],
-        ),
-      );
+  Widget buildMenuItems(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final docUser = FirebaseFirestore.instance.collection('users').doc(userId);
+    final docData = docUser.get().then((value) {
+      Map data = value.data() as Map;
+      return data;
+    });
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Wrap(
+        runSpacing: 8,
+        children: [
+          generateMenuItem(
+              context: context,
+              text: "Home",
+              icon: Icons.home_rounded,
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const Home()));
+              }),
+          const SizedBox(height: 120),
+          generateMenuItem(
+              context: context,
+              text: "Log Out",
+              icon: Icons.exit_to_app_rounded,
+              onTap: () {
+                FirebaseAuth.instance.signOut().then((value) {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => const SignIn()));
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SignIn()),
+                      (route) => false);
+                });
+              },
+              isLogOut: true),
+        ],
+      ),
+    );
+  }
 }
 
 class ElementPicker extends StatefulWidget {
