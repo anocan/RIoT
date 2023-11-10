@@ -4,9 +4,13 @@
 /// (rcc)
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:riot/pages/admin_panel.dart';
+import 'package:riot/pages/credits.dart';
 import 'package:riot/pages/home.dart';
 import 'package:riot/pages/profile.dart';
+import 'package:riot/pages/report.dart';
 import 'package:riot/pages/sign_in.dart';
 import 'package:riot/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +30,7 @@ class User {
   final String country;
   final String cot; // Coffee or Tea?
   final String department;
+  final Map<String, dynamic> riotCard;
 
   User({
     required this.userName,
@@ -40,6 +45,11 @@ class User {
     this.country = '',
     this.cot = '',
     this.department = '',
+    this.riotCard = const {
+      'inOrOut': 'out',
+      'riotCardID': '',
+      'riotCardStatus': 'inactive',
+    },
   });
 
   Map<String, dynamic> toJson() => {
@@ -55,6 +65,7 @@ class User {
         'country': country,
         'cot': cot,
         'department': department,
+        'riotCard': riotCard,
       };
 }
 
@@ -133,45 +144,83 @@ class NavigationDrawer extends StatelessWidget {
               }),
         ),
       );
+
   Widget buildMenuItems(BuildContext context) {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final docUser = FirebaseFirestore.instance.collection('users').doc(userId);
-    final docData = docUser.get().then((value) {
-      Map data = value.data() as Map;
-      return data;
-    });
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: Wrap(
-        runSpacing: 8,
-        children: [
-          generateMenuItem(
-              context: context,
-              text: "Home",
-              icon: Icons.home_rounded,
-              onTap: () {
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const Home()));
-              }),
-          const SizedBox(height: 120),
-          generateMenuItem(
-              context: context,
-              text: "Log Out",
-              icon: Icons.exit_to_app_rounded,
-              onTap: () {
-                FirebaseAuth.instance.signOut().then((value) {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => const SignIn()));
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SignIn()),
-                      (route) => false);
-                });
-              },
-              isLogOut: true),
-        ],
-      ),
-    );
+    return FutureBuilder<Map>(
+        future: getUserData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            // Display a loading indicator while data is being fetched
+            return const CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            // Handle the error
+            return Text('Error: ${snapshot.error}');
+          } else {
+            final userData = snapshot.data;
+
+            return Container(
+              padding: const EdgeInsets.all(24),
+              child: Wrap(
+                runSpacing: 8,
+                children: [
+                  userData!["userType"] == "admin"
+                      ? generateMenuItem(
+                          context: context,
+                          text: "Admin Panel",
+                          icon: Icons.admin_panel_settings_rounded,
+                          onTap: () {
+                            Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                    builder: (context) => const AdminPanel()));
+                          })
+                      : const Wrap(),
+                  generateMenuItem(
+                      context: context,
+                      text: "Home",
+                      icon: Icons.home_rounded,
+                      onTap: () {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                            builder: (context) => const Home()));
+                      }),
+                  generateMenuItem(
+                      context: context,
+                      text: "Report Bug&Feature",
+                      icon: Icons.bug_report_rounded,
+                      onTap: () {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                            builder: (context) => const Report()));
+                      }),
+                  generateMenuItem(
+                      context: context,
+                      text: "Credits",
+                      icon: Icons.verified_rounded,
+                      onTap: () {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                            builder: (context) => const Credits()));
+                      }),
+                  const SizedBox(height: 120),
+                  generateMenuItem(
+                      context: context,
+                      text: "Log Out",
+                      icon: Icons.exit_to_app_rounded,
+                      onTap: () {
+                        FirebaseAuth.instance.signOut().then((value) {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const SignIn()));
+                          Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (_) => const SignIn()),
+                              (route) => false);
+                        });
+                      },
+                      isLogOut: true),
+                ],
+              ),
+            );
+          }
+        });
   }
 }
 
@@ -301,5 +350,456 @@ class _DatePickerState extends State<DatePicker> {
         ),
       ),
     );
+  }
+}
+
+class CustomDropdownMenu extends StatefulWidget {
+  final List<String> items;
+  final Function onCallback;
+  const CustomDropdownMenu(
+      {Key? key, required this.items, required this.onCallback})
+      : super(key: key);
+
+  @override
+  State<CustomDropdownMenu> createState() => _CustomDropdownMenuState();
+}
+
+class _CustomDropdownMenuState extends State<CustomDropdownMenu> {
+  String? dropdownValue;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownMenu<String>(
+      initialSelection: widget.items.first,
+      onSelected: (String? value) {
+        // This is called when the user selects an item.
+        setState(() {
+          dropdownValue = value!;
+          widget.onCallback(dropdownValue);
+        });
+      },
+      dropdownMenuEntries:
+          widget.items.map<DropdownMenuEntry<String>>((String value) {
+        return DropdownMenuEntry<String>(value: value, label: value);
+      }).toList(),
+    );
+  }
+}
+
+class ReportMenu extends StatefulWidget {
+  const ReportMenu({Key? key}) : super(key: key);
+
+  @override
+  State<ReportMenu> createState() => _ReportMenuState();
+}
+
+class _ReportMenuState extends State<ReportMenu> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController reportText = TextEditingController();
+  String selectedValue = "Bug";
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          TextFormField(
+            controller: reportText,
+            maxLines: (MediaQuery.of(context).size.height * 0.01).round(),
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                  borderSide:
+                      BorderSide(width: 3, color: Colors.white.withAlpha(120))),
+              enabledBorder: OutlineInputBorder(
+                  borderSide:
+                      BorderSide(width: 3, color: Colors.white.withAlpha(120))),
+              focusedBorder: OutlineInputBorder(
+                  borderSide:
+                      BorderSide(width: 3, color: Colors.white.withAlpha(60))),
+              hintText: 'Convey your thoughts.',
+            ),
+            validator: (String? value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter some text';
+              }
+              return null;
+            },
+          ),
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.01,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              CustomDropdownMenu(
+                items: const ["Bug", "Feature"],
+                onCallback: (value) {
+                  setState(() {
+                    selectedValue = value;
+                  });
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    // Validate will return true if the form is valid, or false if
+                    // the form is invalid.
+                    if (_formKey.currentState!.validate()) {
+                      final deviceInfoPlugin = DeviceInfoPlugin();
+                      final deviceInfo = await deviceInfoPlugin.deviceInfo;
+                      final allInfo = deviceInfo.data;
+
+                      await FirebaseFirestore.instance
+                          .collection("reports")
+                          .add({
+                        "uid": FirebaseAuth.instance.currentUser!.uid,
+                        "reportType": selectedValue,
+                        "deviceInfo": allInfo,
+                        "message": reportText.text,
+                        "status": "Active",
+                        "date": DateTime.now().toString(),
+                      });
+                    }
+                  },
+                  child: const Text('Submit'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeElement extends StatefulWidget {
+  final Stream stream;
+  final String labData;
+  final String description;
+  final Icon icon;
+  const HomeElement({
+    Key? key,
+    required this.stream,
+    required this.labData,
+    required this.description,
+    required this.icon,
+  }) : super(key: key);
+
+  @override
+  State<HomeElement> createState() => _HomeElementState();
+}
+
+class _HomeElementState extends State<HomeElement> {
+  @override
+  Widget build(BuildContext context) {
+    final deviceHeight = MediaQuery.of(context).size.height;
+    final deviceWidth = MediaQuery.of(context).size.width;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          deviceWidth * 0.05, 0, deviceWidth * 0.05, deviceHeight * 0.04),
+      child: StreamBuilder(
+          stream: widget.stream,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const CircularProgressIndicator();
+            }
+            final labData = snapshot.data!.get(widget.labData);
+            return Container(
+              padding: EdgeInsets.fromLTRB(deviceWidth * 0.02,
+                  deviceHeight * 0.04, deviceWidth * 0.02, deviceHeight * 0.04),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(deviceHeight * 0.01),
+                border:
+                    Border.all(width: deviceWidth * 0.01, color: Colors.white),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.description,
+                    style: TextStyle(
+                        fontSize: deviceWidth * 0.035,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  Row(
+                    children: [
+                      widget.icon,
+                      SizedBox(
+                        width: deviceWidth * 0.02,
+                      ),
+                      Text(
+                        "$labData",
+                        style: TextStyle(
+                            fontSize: deviceWidth * 0.08,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            );
+          }),
+    );
+  }
+}
+
+Future<Map> getUserData() async {
+  final userId = FirebaseAuth.instance.currentUser!.uid;
+  final docUser = FirebaseFirestore.instance.collection('users').doc(userId);
+  final docSnapshot = await docUser.get();
+  final data = docSnapshot.data() as Map;
+  return data;
+}
+
+class AdminPanelPicker extends StatefulWidget {
+  final List<String> items;
+  final String uID;
+  final Map<String, dynamic> updateItem;
+  const AdminPanelPicker(
+      {Key? key,
+      required this.items,
+      required this.uID,
+      required this.updateItem})
+      : super(key: key);
+
+  @override
+  State<AdminPanelPicker> createState() => _AdminPanelPickerState();
+}
+
+class _AdminPanelPickerState extends State<AdminPanelPicker> {
+  int selectedIndex = 0;
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width * 0.72,
+            height: MediaQuery.of(context).size.height * 0.2,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(120),
+                color: Colors.transparent),
+            child: CupertinoPicker(
+              diameterRatio: 1,
+              backgroundColor: Colors.transparent,
+              itemExtent: 64,
+              onSelectedItemChanged: (int index) {
+                setState(() {
+                  selectedIndex = index;
+                });
+              },
+              children: widget.items
+                  .map((e) => Center(
+                          child: Text(
+                        e,
+                        textAlign: TextAlign.center,
+                      )))
+                  .toList(),
+            ),
+          ),
+          CupertinoButton(
+            onPressed: () {
+              var updatedCard = widget.updateItem;
+              updatedCard['inOrOut'] = widget.items[selectedIndex];
+              updateAnotherUser(
+                uID: widget.uID,
+                riotCard: updatedCard,
+              );
+            },
+            child: const Text(
+              "Select",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AdminUsers extends StatefulWidget {
+  final Stream stream;
+  //final String labData;
+  final String description;
+  final Icon icon;
+  const AdminUsers({
+    Key? key,
+    required this.stream,
+    //required this.labData,
+    required this.description,
+    required this.icon,
+  }) : super(key: key);
+
+  @override
+  State<AdminUsers> createState() => _AdminUsersState();
+}
+
+class _AdminUsersState extends State<AdminUsers> {
+  @override
+  Widget build(BuildContext context) {
+    final deviceHeight = MediaQuery.of(context).size.height;
+    final deviceWidth = MediaQuery.of(context).size.width;
+    return Padding(
+        padding: EdgeInsets.fromLTRB(
+            deviceWidth * 0.05, 0, deviceWidth * 0.05, deviceHeight * 0.04),
+        child: StreamBuilder(
+            stream: widget.stream,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              }
+              //final labData = snapshot.data!.get(widget.labData);
+              return Container(
+                  padding: EdgeInsets.fromLTRB(
+                      deviceWidth * 0.0,
+                      deviceHeight * 0.0,
+                      deviceWidth * 0.0,
+                      deviceHeight * 0.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(deviceHeight * 0.01),
+                    border: Border.all(
+                        width: deviceWidth * 0.01, color: Colors.white),
+                  ),
+                  child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        var doc = snapshot.data!.docs;
+                        return Container(
+                          padding: EdgeInsets.fromLTRB(
+                              deviceWidth * 0.0,
+                              deviceHeight * 0.0,
+                              deviceWidth * 0.0,
+                              deviceHeight * 0.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.rectangle,
+                            borderRadius:
+                                BorderRadius.circular(deviceHeight * 0.01),
+                            border: Border.all(
+                                width: deviceWidth * 0.01, color: Colors.white),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  widget.icon,
+                                  TextButton(
+                                      onPressed: () {
+                                        showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                scrollable: true,
+                                                title:
+                                                    const Text("User Details"),
+                                                content: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                        "userName: ${doc[index]['userName']}\n"),
+                                                    Text(
+                                                        "id: ${doc[index]['id']}\n"),
+                                                    Text(
+                                                        "userType: ${doc[index]['userType']}\n"),
+                                                    Text(
+                                                        "email: ${doc[index]['email']}\n"),
+                                                    Text(
+                                                        "name: ${doc[index]['name']}\n"),
+                                                    Text(
+                                                        "phoneNumber: ${doc[index]['phoneNumber']}\n"),
+                                                    Text(
+                                                        "dob: ${doc[index]['dob']}\n"),
+                                                    Text(
+                                                        "gender: ${doc[index]['gender']}\n"),
+                                                    Text(
+                                                        "pp: ${doc[index]['pp']}\n"),
+                                                    Text(
+                                                        "department: ${doc[index]['department']}\n"),
+                                                    Text(
+                                                        "country: ${doc[index]['country']}\n"),
+                                                    Text(
+                                                        "cot: ${doc[index]['cot']}\n"),
+                                                  ],
+                                                ),
+                                              );
+                                            });
+                                      },
+                                      child: Text(
+                                        doc[index]['userName'],
+                                        style: TextStyle(
+                                            fontSize: deviceWidth * 0.04,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black),
+                                      )),
+                                ],
+                              ),
+                              IconButton(
+                                  onPressed: () {},
+                                  icon: const Icon(Icons.no_accounts)),
+                              IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            scrollable: true,
+                                            title:
+                                                const Text("RIoT Card Details"),
+                                            content: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                TextFormField(
+                                                  decoration: InputDecoration(
+                                                      isDense: true,
+                                                      prefixIcon: const Text(
+                                                        "inOrOut:",
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      prefixIconConstraints:
+                                                          const BoxConstraints(
+                                                              minWidth: 0,
+                                                              minHeight: 0),
+                                                      hintText:
+                                                          "${doc[index]['riotCard']['inOrOut']}\n"),
+                                                ),
+                                                Text(
+                                                    "riotCardID: ${doc[index]['riotCard']['riotCardID']}\n"),
+                                                Text(
+                                                    "riotCardStatus: ${doc[index]['riotCard']['riotCardStatus']}\n"),
+                                                AdminPanelPicker(
+                                                    uID: doc[index]['id'],
+                                                    items: const ['in', 'out'],
+                                                    updateItem: doc[index]
+                                                        ['riotCard'])
+                                              ],
+                                            ),
+                                          );
+                                        });
+                                  },
+                                  icon: const Icon(Icons.credit_card)),
+                            ],
+                          ),
+                        );
+                      }));
+            }));
   }
 }

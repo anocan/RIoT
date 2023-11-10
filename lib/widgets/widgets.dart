@@ -128,6 +128,7 @@ Future updateUser({
   String? country,
   String? cot,
   String? department,
+  Map<String, dynamic>? riotCard,
 }) async {
   final userId = FirebaseAuth.instance.currentUser!.uid;
   final docUser = FirebaseFirestore.instance.collection('users').doc(userId);
@@ -138,6 +139,7 @@ Future updateUser({
       userType: "user",
       userName: userName!,
       email: email!,
+      id: docUser.id,
     );
     final json = user.toJson();
     await docUser.set(json);
@@ -168,6 +170,7 @@ Future updateUser({
     country: country ?? docData['country'],
     cot: cot ?? docData['cot'],
     department: department ?? docData['department'],
+    riotCard: riotCard ?? docData['riotCard'],
   );
 
   final json = user.toJson();
@@ -702,4 +705,49 @@ Future<Uint8List> pickImage(ImageSource source) async {
 Future<Uint8List> selectImage() async {
   Uint8List image = await pickImage(ImageSource.gallery);
   return image;
+}
+
+///
+Future updateAnotherUser({
+  required String uID,
+  String? userName,
+  String? userType,
+  String? email,
+  String? name,
+  String? pp,
+  String? phoneNumber,
+  String? gender,
+  String? dob,
+  String? country,
+  String? cot,
+  String? department,
+  Map<String, dynamic>? riotCard,
+}) async {
+  final userId = uID;
+  final docUser = FirebaseFirestore.instance.collection('users').doc(userId);
+
+  final docData = await docUser.get().then((value) {
+    Map data = value.data() as Map;
+    return data;
+  });
+
+  final user = rcc.User(
+    id: docUser.id,
+    userType: userType ?? docData['userType'],
+    userName: userName ?? docData['userName'],
+    email: email ?? docData['email'],
+    name: name ?? docData['name'],
+    pp: pp ?? docData['pp'],
+    phoneNumber: phoneNumber ?? docData['phoneNumber'],
+    gender: gender ?? docData['gender'],
+    dob: dob ?? docData['dob'],
+    country: country ?? docData['country'],
+    cot: cot ?? docData['cot'],
+    department: department ?? docData['department'],
+    riotCard: riotCard ?? docData['riotCard'],
+  );
+
+  final json = user.toJson();
+
+  await docUser.set(json);
 }

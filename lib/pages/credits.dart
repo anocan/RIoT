@@ -1,19 +1,20 @@
 import 'dart:ui';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:riot/themes/themes.dart' as themes;
 import 'package:riot/classes/classes.dart' as rcc;
 
-class Home extends StatefulWidget {
-  const Home({super.key});
+class Credits extends StatefulWidget {
+  const Credits({super.key});
 
   @override
-  State<Home> createState() => _HomeState();
+  State<Credits> createState() => _CreditsState();
 }
 
-class _HomeState extends State<Home> {
+class _CreditsState extends State<Credits> {
   var scaffoldKey = GlobalKey<ScaffoldState>();
+  String? selectedValue;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,7 +42,7 @@ class _HomeState extends State<Home> {
                     )),
                 backgroundColor: Colors.black87.withAlpha(45),
                 title: const Text(
-                  "Home",
+                  "Credits",
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 36,
@@ -54,7 +55,7 @@ class _HomeState extends State<Home> {
                       borderRadius: BorderRadius.circular(10),
                       color: Colors.black.withAlpha(120),
                     ),
-                  ),
+                  )
                 ]),
           ),
         ),
@@ -69,32 +70,15 @@ class _HomeState extends State<Home> {
           themes.color3, //Color(0xff870160),
         ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
         child: SingleChildScrollView(
-            child: Padding(
-          padding: EdgeInsets.fromLTRB(
-              0, MediaQuery.of(context).size.height * 0.2, 0, 0),
-          child: Column(
-            children: [
-              rcc.HomeElement(
-                stream: FirebaseFirestore.instance
-                    .collection('labData')
-                    .doc('lab-people')
-                    .snapshots(),
-                labData: "labPeople",
-                description: "Number of people",
-                icon: const Icon(Icons.people_alt_outlined),
-              ),
-              rcc.HomeElement(
-                stream: FirebaseFirestore.instance
-                    .collection('labData')
-                    .doc('lab-water')
-                    .snapshots(),
-                labData: "labWater",
-                description: "Amount of water left",
-                icon: const Icon(Icons.water_drop_outlined),
-              )
-            ],
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+                MediaQuery.of(context).size.width * 0.05,
+                MediaQuery.of(context).size.height * 0.2,
+                MediaQuery.of(context).size.width * 0.05,
+                0),
+            child: const Placeholder(),
           ),
-        )),
+        ),
       ),
     );
   }
