@@ -69,6 +69,30 @@ class User {
       };
 }
 
+class RiotCard {
+  String id;
+  final String inOrOut;
+  final String riotCardID;
+  final String riotCardStatus;
+  final String userName;
+
+  RiotCard({
+    this.id = '',
+    this.inOrOut = '',
+    this.riotCardID = '',
+    this.riotCardStatus = '',
+    this.userName = '',
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'inOrOut': inOrOut,
+        'riotCardID': riotCardID,
+        'riotCardStatus': riotCardStatus,
+        'userName': userName,
+      };
+}
+
 class LocalException {
   String exception;
 
@@ -559,11 +583,17 @@ Future<Map> getUserData() async {
 class AdminPanelPicker extends StatefulWidget {
   final List<String> items;
   final String uID;
+  final String updateElement;
+  final String initialItem;
+  final Function(String data, String dataType) updateParent;
   final Map<String, dynamic> updateItem;
   const AdminPanelPicker(
       {Key? key,
       required this.items,
       required this.uID,
+      required this.updateElement,
+      required this.initialItem,
+      required this.updateParent,
       required this.updateItem})
       : super(key: key);
 
@@ -572,51 +602,88 @@ class AdminPanelPicker extends StatefulWidget {
 }
 
 class _AdminPanelPickerState extends State<AdminPanelPicker> {
+  List<String> riotCardIndexesInOrOut = [
+    'in',
+    'out',
+  ];
+  List<String> riotCardIndexesCardStatus = [
+    'active',
+    'inactive',
+    'disabled',
+  ];
+  late FixedExtentScrollController _scrollController;
+
   int selectedIndex = 0;
   @override
   Widget build(BuildContext context) {
+    int initialItemIndex = 0;
+    switch (widget.updateElement) {
+      case 'inOrOut':
+        initialItemIndex = riotCardIndexesInOrOut.indexOf(widget.initialItem);
+        break;
+      case 'riotCardStatus':
+        initialItemIndex =
+            riotCardIndexesCardStatus.indexOf(widget.initialItem);
+        break;
+    }
+
+    _scrollController =
+        FixedExtentScrollController(initialItem: initialItemIndex);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: MediaQuery.of(context).size.width * 0.72,
-            height: MediaQuery.of(context).size.height * 0.2,
+            width: MediaQuery.of(context).size.width * 0.36,
+            height: MediaQuery.of(context).size.height * 0.1,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(120),
                 color: Colors.transparent),
             child: CupertinoPicker(
+              scrollController: _scrollController,
               diameterRatio: 1,
               backgroundColor: Colors.transparent,
               itemExtent: 64,
               onSelectedItemChanged: (int index) {
                 setState(() {
                   selectedIndex = index;
+                  widget.updateParent(
+                      widget.items[selectedIndex], widget.updateElement);
                 });
               },
-              children: widget.items
-                  .map((e) => Center(
-                          child: Text(
-                        e,
-                        textAlign: TextAlign.center,
-                      )))
-                  .toList(),
+              children: List.generate(
+                widget.items.length,
+                (index) => Center(
+                  child: Text(
+                    widget.items[index],
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color:
+                          index == initialItemIndex ? Colors.red : Colors.black,
+                      fontWeight: index == initialItemIndex
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
+          /*
           CupertinoButton(
             onPressed: () {
               var updatedCard = widget.updateItem;
-              updatedCard['inOrOut'] = widget.items[selectedIndex];
+              updatedCard[widget.updateElement] = widget.items[selectedIndex];
               updateAnotherUser(
                 uID: widget.uID,
                 riotCard: updatedCard,
-              );
+              ).then((value) => Navigator.pop(context));
             },
             child: const Text(
               "Select",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-          ),
+          ),*/
         ],
       ),
     );
@@ -625,13 +692,11 @@ class _AdminPanelPickerState extends State<AdminPanelPicker> {
 
 class AdminUsers extends StatefulWidget {
   final Stream stream;
-  //final String labData;
   final String description;
   final Icon icon;
   const AdminUsers({
     Key? key,
     required this.stream,
-    //required this.labData,
     required this.description,
     required this.icon,
   }) : super(key: key);
@@ -647,7 +712,7 @@ class _AdminUsersState extends State<AdminUsers> {
     final deviceWidth = MediaQuery.of(context).size.width;
     return Padding(
         padding: EdgeInsets.fromLTRB(
-            deviceWidth * 0.05, 0, deviceWidth * 0.05, deviceHeight * 0.04),
+            deviceWidth * 0.02, 0, deviceWidth * 0.02, deviceHeight * 0.00),
         child: StreamBuilder(
             stream: widget.stream,
             builder: (context, snapshot) {
@@ -668,138 +733,318 @@ class _AdminUsersState extends State<AdminUsers> {
                     border: Border.all(
                         width: deviceWidth * 0.01, color: Colors.white),
                   ),
-                  child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        var doc = snapshot.data!.docs;
-                        return Container(
-                          padding: EdgeInsets.fromLTRB(
-                              deviceWidth * 0.0,
-                              deviceHeight * 0.0,
-                              deviceWidth * 0.0,
-                              deviceHeight * 0.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.rectangle,
-                            borderRadius:
-                                BorderRadius.circular(deviceHeight * 0.01),
-                            border: Border.all(
-                                width: deviceWidth * 0.01, color: Colors.white),
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
+                          child: Text(
+                            "Users",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                fontSize: 32),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  widget.icon,
-                                  TextButton(
-                                      onPressed: () {
-                                        showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                scrollable: true,
-                                                title:
-                                                    const Text("User Details"),
-                                                content: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                        "userName: ${doc[index]['userName']}\n"),
-                                                    Text(
-                                                        "id: ${doc[index]['id']}\n"),
-                                                    Text(
-                                                        "userType: ${doc[index]['userType']}\n"),
-                                                    Text(
-                                                        "email: ${doc[index]['email']}\n"),
-                                                    Text(
-                                                        "name: ${doc[index]['name']}\n"),
-                                                    Text(
-                                                        "phoneNumber: ${doc[index]['phoneNumber']}\n"),
-                                                    Text(
-                                                        "dob: ${doc[index]['dob']}\n"),
-                                                    Text(
-                                                        "gender: ${doc[index]['gender']}\n"),
-                                                    Text(
-                                                        "pp: ${doc[index]['pp']}\n"),
-                                                    Text(
-                                                        "department: ${doc[index]['department']}\n"),
-                                                    Text(
-                                                        "country: ${doc[index]['country']}\n"),
-                                                    Text(
-                                                        "cot: ${doc[index]['cot']}\n"),
-                                                  ],
-                                                ),
-                                              );
-                                            });
-                                      },
-                                      child: Text(
-                                        doc[index]['userName'],
-                                        style: TextStyle(
-                                            fontSize: deviceWidth * 0.04,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                      )),
-                                ],
-                              ),
-                              IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(Icons.no_accounts)),
-                              IconButton(
-                                  onPressed: () {
-                                    showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            scrollable: true,
-                                            title:
-                                                const Text("RIoT Card Details"),
-                                            content: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                TextFormField(
-                                                  decoration: InputDecoration(
-                                                      isDense: true,
-                                                      prefixIcon: const Text(
-                                                        "inOrOut:",
+                        ),
+                        ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: snapshot.data!.docs.length,
+                            itemBuilder: (context, index) {
+                              var doc = snapshot.data!.docs;
+                              return Container(
+                                padding: EdgeInsets.fromLTRB(
+                                    deviceWidth * 0.0,
+                                    deviceHeight * 0.0,
+                                    deviceWidth * 0.0,
+                                    deviceHeight * 0.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.rectangle,
+                                  borderRadius: BorderRadius.circular(
+                                      deviceHeight * 0.01),
+                                  border: Border.all(
+                                      width: deviceWidth * 0.01,
+                                      color: Colors.white),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        widget.icon,
+                                        TextButton(
+                                            onPressed: () {
+                                              showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return AlertDialog(
+                                                      scrollable: true,
+                                                      title: const Text(
+                                                        "User Details",
+                                                        textAlign:
+                                                            TextAlign.center,
                                                         style: TextStyle(
                                                             fontWeight:
                                                                 FontWeight
                                                                     .bold),
                                                       ),
-                                                      prefixIconConstraints:
-                                                          const BoxConstraints(
-                                                              minWidth: 0,
-                                                              minHeight: 0),
-                                                      hintText:
-                                                          "${doc[index]['riotCard']['inOrOut']}\n"),
-                                                ),
-                                                Text(
-                                                    "riotCardID: ${doc[index]['riotCard']['riotCardID']}\n"),
-                                                Text(
-                                                    "riotCardStatus: ${doc[index]['riotCard']['riotCardStatus']}\n"),
-                                                AdminPanelPicker(
-                                                    uID: doc[index]['id'],
-                                                    items: const ['in', 'out'],
-                                                    updateItem: doc[index]
-                                                        ['riotCard'])
-                                              ],
-                                            ),
-                                          );
-                                        });
-                                  },
-                                  icon: const Icon(Icons.credit_card)),
-                            ],
-                          ),
-                        );
-                      }));
+                                                      content: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .start,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                              "userName: ${doc[index]['userName']}\n"),
+                                                          Text(
+                                                              "id: ${doc[index]['id']}\n"),
+                                                          Text(
+                                                              "userType: ${doc[index]['userType']}\n"),
+                                                          Text(
+                                                              "email: ${doc[index]['email']}\n"),
+                                                          Text(
+                                                              "name: ${doc[index]['name']}\n"),
+                                                          Text(
+                                                              "phoneNumber: ${doc[index]['phoneNumber']}\n"),
+                                                          Text(
+                                                              "dob: ${doc[index]['dob']}\n"),
+                                                          Text(
+                                                              "gender: ${doc[index]['gender']}\n"),
+                                                          Text(
+                                                              "pp: ${doc[index]['pp']}\n"),
+                                                          Text(
+                                                              "riotCard: ${doc[index]['riotCard']}\n"),
+                                                          Text(
+                                                              "department: ${doc[index]['department']}\n"),
+                                                          Text(
+                                                              "country: ${doc[index]['country']}\n"),
+                                                          Text(
+                                                              "cot: ${doc[index]['cot']}\n"),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  });
+                                            },
+                                            child: Text(
+                                              doc[index]['userName'],
+                                              style: TextStyle(
+                                                  fontSize: deviceWidth * 0.04,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black),
+                                            )),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                            onPressed: () {
+                                              showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return AlertDialog(
+                                                      scrollable: true,
+                                                      title: const Text(
+                                                        "RIoT Card Details",
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      content: Column(
+                                                        children: [
+                                                          Text(
+                                                            snapshot.data!
+                                                                    .docs[index]
+                                                                ['userName'],
+                                                            style: const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontSize: 16),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 24,
+                                                          ),
+                                                          AdminRiotCardController(
+                                                            document: snapshot
+                                                                .data!.docs,
+                                                            index: index,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  });
+                                            },
+                                            icon:
+                                                const Icon(Icons.credit_card)),
+                                        IconButton(
+                                            onPressed: () {},
+                                            icon:
+                                                const Icon(Icons.no_accounts)),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                      ],
+                    ),
+                  ));
             }));
+  }
+}
+
+class AdminRiotCardController extends StatefulWidget {
+  final dynamic document;
+  final int index;
+  const AdminRiotCardController({
+    Key? key,
+    required this.document,
+    required this.index,
+  }) : super(key: key);
+
+  @override
+  State<AdminRiotCardController> createState() =>
+      _AdminRiotCardControllerState();
+}
+
+class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
+  late TextEditingController _textController;
+  late String riotCardIDState;
+  late String inOrOutState;
+  late String riotCardStatusState;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: "");
+    inOrOutState = widget.document[widget.index]['riotCard']['inOrOut'];
+    riotCardStatusState =
+        widget.document[widget.index]['riotCard']['riotCardStatus'];
+    riotCardIDState = widget.document[widget.index]['riotCard']['riotCardID'];
+  }
+
+  void updateController(String data, String dataType) {
+    setState(() {
+      switch (dataType) {
+        case "inOrOut":
+          inOrOutState = data;
+          //print(inOrOutState);
+          break;
+        case "riotCardStatus":
+          riotCardStatusState = data;
+          //print(riotCardStatusState);
+          break;
+        case "riotCardID":
+          riotCardIDState = data;
+          //print(riotCardIDState);
+          break;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          onChanged: (value) {
+            updateController(_textController.text, "riotCardID");
+          },
+          controller: _textController,
+          maxLength: 8,
+          decoration: InputDecoration(
+              isDense: true,
+              prefixIcon: const Text(
+                "riotCardID: ",
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    textBaseline: TextBaseline.ideographic),
+              ),
+              prefixIconConstraints:
+                  const BoxConstraints(minWidth: 0, minHeight: 0),
+              hintText:
+                  "${widget.document[widget.index]['riotCard']['riotCardID']}"),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "inOrOut:",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            AdminPanelPicker(
+              uID: widget.document[widget.index]['id'],
+              updateElement: 'inOrOut',
+              initialItem: widget.document[widget.index]['riotCard']['inOrOut'],
+              items: const ['in', 'out'],
+              updateItem: widget.document[widget.index]['riotCard'],
+              updateParent: updateController,
+            )
+          ],
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            const Text(
+              "riotCardStatus:",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            AdminPanelPicker(
+              uID: widget.document[widget.index]['id'],
+              updateElement: 'riotCardStatus',
+              items: const [
+                'active',
+                'inactive',
+                'disabled',
+              ],
+              initialItem: widget.document[widget.index]['riotCard']
+                  ['riotCardStatus'],
+              updateItem: widget.document[widget.index]['riotCard'],
+              updateParent: updateController,
+            )
+          ],
+        ),
+        GestureDetector(
+          onTap: () {
+            var updatedCard = widget.document[widget.index]['riotCard'];
+            updatedCard['riotCardID'] = riotCardIDState;
+            updatedCard['riotCardStatus'] = riotCardStatusState;
+            updatedCard['inOrOut'] = inOrOutState;
+            synchronizeRiotCards(widget.document[widget.index]['id'],
+                widget.document[widget.index]['userName'], updatedCard);
+            updateAnotherUser(
+                    uID: widget.document[widget.index]['id'],
+                    riotCard: updatedCard)
+                .then((value) => Navigator.pop(context));
+          },
+          child: Container(
+              padding: const EdgeInsets.all(8),
+              child: const Center(
+                child: Text(
+                  "Save",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      color: Colors.purple),
+                ),
+              )),
+        ),
+      ],
+    );
   }
 }

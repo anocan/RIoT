@@ -3,6 +3,8 @@
 /// Widgets
 /// (rcw)
 
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -750,4 +752,66 @@ Future updateAnotherUser({
   final json = user.toJson();
 
   await docUser.set(json);
+}
+
+Future<Map> getRiotCards() async {
+  //final userId = FirebaseAuth.instance.currentUser!.uid;
+  final doc =
+      FirebaseFirestore.instance.collection('riotCards').doc('riot-cards');
+  final docSnapshot = await doc.get();
+  final data = docSnapshot.data() as Map;
+  return data;
+}
+
+int searchRiotCards(String id, List<dynamic> list) {
+  for (int i = 0; i < list.length; i++) {
+    if (id == list[i]['id']) {
+      return i;
+    }
+  }
+  return -99; // initialization of riotCard
+}
+
+void synchronizeRiotCards(
+    String uID, String userName, dynamic updatedCard) async {
+  final doc =
+      FirebaseFirestore.instance.collection('riotCards').doc('riot-cards');
+  final value = await getRiotCards();
+  final List riotCardsList = value['riotCardList'];
+  final cardIndex = searchRiotCards(uID, riotCardsList);
+
+  //print(updatedCard);
+  if (cardIndex != -99) {
+    final userRiotCard = riotCardsList[cardIndex];
+
+    final riotCard = rcc.RiotCard(
+      id: uID,
+      inOrOut: updatedCard['inOrOut'] ?? userRiotCard['inOrOut'],
+      riotCardID: updatedCard['riotCardID'] ?? userRiotCard['riotCardID'],
+      riotCardStatus:
+          updatedCard['riotCardStatus'] ?? userRiotCard['riotCardStatus'],
+      userName: userRiotCard['userName'],
+    );
+
+    final updatedRiotCardsList = riotCardsList;
+    updatedRiotCardsList[cardIndex] = riotCard.toJson();
+
+    final updatedRiotCardsMap = {'riotCardList': updatedRiotCardsList};
+
+    await doc.set(updatedRiotCardsMap);
+  } else {
+    final riotCard = rcc.RiotCard(
+      id: uID,
+      inOrOut: 'out',
+      riotCardID: updatedCard['riotCardID'],
+      riotCardStatus: updatedCard['riotCardStatus'],
+      userName: userName,
+    );
+    final updatedRiotCardsList = riotCardsList;
+    updatedRiotCardsList.add(riotCard.toJson());
+
+    final updatedRiotCardsMap = {'riotCardList': updatedRiotCardsList};
+
+    await doc.set(updatedRiotCardsMap);
+  }
 }

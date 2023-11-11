@@ -73,9 +73,9 @@ class _AdminPanelState extends State<AdminPanel> {
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-                MediaQuery.of(context).size.width * 0.05,
+                MediaQuery.of(context).size.width * 0.01,
                 MediaQuery.of(context).size.height * 0.2,
-                MediaQuery.of(context).size.width * 0.05,
+                MediaQuery.of(context).size.width * 0.01,
                 0),
             child: rcc.AdminUsers(
               stream:

@@ -11,9 +11,7 @@ class StoreData {
   Future<String> uploadImageToStorage(String fileName, Uint8List file) async {
     Reference ref = storage.ref().child(fileName);
     UploadTask uploadTask = ref.putData(file);
-    print(await ref.putData(file).snapshot.ref.getDownloadURL());
     TaskSnapshot snapshot = await uploadTask;
-    print("object");
     String downloadUrl = await snapshot.ref.getDownloadURL();
     return downloadUrl;
   }
