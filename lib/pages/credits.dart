@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:riot/themes/themes.dart' as themes;
 import 'package:riot/classes/classes.dart' as rcc;
+import 'package:url_launcher/url_launcher.dart';
 
 class Credits extends StatefulWidget {
   const Credits({super.key});
@@ -72,11 +73,61 @@ class _CreditsState extends State<Credits> {
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-                MediaQuery.of(context).size.width * 0.05,
-                MediaQuery.of(context).size.height * 0.2,
-                MediaQuery.of(context).size.width * 0.05,
+                MediaQuery.of(context).size.width * 0.0,
+                MediaQuery.of(context).size.height * 0.0,
+                MediaQuery.of(context).size.width * 0.00,
                 0),
-            child: const Placeholder(),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: <Color>[
+                themes.color1, //Color(0xff1f005c),
+                themes.color2, //Color(0xff5b0060),
+                themes.color3, //Color(0xff870160),
+              ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      20, MediaQuery.of(context).size.height * 0.2, 20, 0),
+                  child: Container(
+                    decoration: BoxDecoration(boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        spreadRadius: 8,
+                        blurRadius: 10,
+                        offset:
+                            const Offset(0, 3), // changes position of shadow
+                      )
+                    ]),
+                    child: Column(
+                      children: <Widget>[
+                        Text(
+                          "This app and project RIoT is realized by Anıl Budak with special thanks to Deniz Petek.",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.05),
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.02),
+                        Center(
+                          child: InkWell(
+                              child: const Text(
+                                'Linkedin Page (linkedin/in/anilbudak)',
+                                style: TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              onTap: () => launch(
+                                  'https://www.linkedin.com/in/anilbudak/')),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),

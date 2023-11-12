@@ -108,11 +108,24 @@ class _ProfileState extends State<Profile> {
                               child: Column(
                                 children: [
                                   CircleAvatar(
-                                      radius:
-                                          MediaQuery.of(context).size.height *
+                                    radius: MediaQuery.of(context).size.height *
+                                        0.115,
+                                    child: Image.network(
+                                      snapshot.data!.get('pp'),
+                                      errorBuilder: (BuildContext context,
+                                          Object exception,
+                                          StackTrace? stackTrace) {
+                                        return CircleAvatar(
+                                          radius: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
                                               0.115,
-                                      backgroundImage: NetworkImage(
-                                          snapshot.data!.get('pp'))),
+                                          backgroundImage: const AssetImage(
+                                              'assets/images/default-pp.jpg'),
+                                        );
+                                      },
+                                    ),
+                                  ),
                                   const SizedBox(height: 24),
                                 ],
                               ),
@@ -182,7 +195,10 @@ class _ProfileState extends State<Profile> {
                             text: snapshot.data!.get("dob"),
                             mutable: true,
                             updateItem: "dob",
-                            context: context)
+                            context: context),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.05,
+                        )
                       ],
                     ),
                   ),

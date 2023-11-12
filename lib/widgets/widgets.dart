@@ -3,8 +3,6 @@
 /// Widgets
 /// (rcw)
 
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -46,9 +44,12 @@ TextField authTextField(String text, IconData icon, bool isPasswordType,
       cursorColor: Colors.white,
       style: TextStyle(color: Colors.white.withOpacity(0.9)),
       decoration: InputDecoration(
-          prefix: Icon(
-            icon,
-            color: Colors.white70,
+          prefix: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+            child: Icon(
+              icon,
+              color: Colors.white70,
+            ),
           ),
           labelText: text,
           labelStyle: TextStyle(color: Colors.white.withOpacity(0.9)),
@@ -249,14 +250,36 @@ Future createAccount(
     }
   } on FirebaseAuthException catch (e) {
     final text = notificationBar(text: errorGenerator(e.code));
-    ScaffoldMessenger.of(context)
-      ..removeCurrentSnackBar()
-      ..showSnackBar(text);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(text);
+    }
   } on rcc.LocalException catch (e) {
     final text = notificationBar(text: errorGenerator(e.exception));
-    ScaffoldMessenger.of(context)
-      ..removeCurrentSnackBar()
-      ..showSnackBar(text);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(text);
+    }
+  }
+}
+
+Future<bool> isBanned() async {
+  final userId = FirebaseAuth.instance.currentUser!.uid;
+  final docData = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .get()
+      .then((value) {
+    Map data = value.data() as Map;
+    return data;
+  });
+
+  if (docData['userType'] == "banned") {
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -268,10 +291,23 @@ Future signInAccount(TextEditingController emailController,
         email: emailController.text, password: passwordController.text);
     if (context.mounted) {
       if (FirebaseAuth.instance.currentUser!.emailVerified) {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => const Home()));
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (_) => const Home()), (route) => false);
+        if (await isBanned()) {
+          final text = notificationBar(
+            text: 'You have been restricted. Please consult the admin.',
+          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(text);
+          }
+        } else {
+          if (context.mounted) {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => const Home()));
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const Home()),
+                (route) => false);
+          }
+        }
       } else {
         final text = notificationBar(
             label: 'Resend',
@@ -284,9 +320,11 @@ Future signInAccount(TextEditingController emailController,
     }
   } on FirebaseAuthException catch (e) {
     final text = notificationBar(text: errorGenerator(e.code));
-    ScaffoldMessenger.of(context)
-      ..removeCurrentSnackBar()
-      ..showSnackBar(text);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(text);
+    }
   }
 }
 
@@ -309,9 +347,11 @@ Future sendResetEmail(
     }
   } on FirebaseAuthException catch (e) {
     final text = notificationBar(text: errorGenerator(e.code));
-    ScaffoldMessenger.of(context)
-      ..removeCurrentSnackBar()
-      ..showSnackBar(text);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(text);
+    }
   }
 }
 

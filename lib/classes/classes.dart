@@ -142,7 +142,13 @@ class NavigationDrawer extends StatelessWidget {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return const CircularProgressIndicator();
+                  //NetworkImage(snapshot.data!.get('pp'))
+                  return const Column(
+                    children: [
+                      CircularProgressIndicator(),
+                      Text("NO CONNECTION")
+                    ],
+                  );
                 }
 
                 return Container(
@@ -151,9 +157,19 @@ class NavigationDrawer extends StatelessWidget {
                   child: Column(
                     children: [
                       CircleAvatar(
-                          radius: 64,
-                          backgroundImage:
-                              NetworkImage(snapshot.data!.get('pp'))),
+                        radius: 64,
+                        child: Image.network(
+                          snapshot.data!.get('pp'),
+                          errorBuilder: (BuildContext context, Object exception,
+                              StackTrace? stackTrace) {
+                            return const CircleAvatar(
+                              radius: 64,
+                              backgroundImage:
+                                  AssetImage('assets/images/default-pp.jpg'),
+                            );
+                          },
+                        ),
+                      ),
                       const SizedBox(height: 24),
                       Text(
                         "Hello, ${snapshot.data!.get('userName') ?? ''}",
@@ -240,6 +256,7 @@ class NavigationDrawer extends StatelessWidget {
                         });
                       },
                       isLogOut: true),
+                  const Text("v1.0.0"),
                 ],
               ),
             );
@@ -394,6 +411,13 @@ class _CustomDropdownMenuState extends State<CustomDropdownMenu> {
   @override
   Widget build(BuildContext context) {
     return DropdownMenu<String>(
+      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white.withAlpha(190),
+      ),
+      menuStyle: const MenuStyle(
+          backgroundColor: MaterialStatePropertyAll(Colors.white)),
       initialSelection: widget.items.first,
       onSelected: (String? value) {
         // This is called when the user selects an item.
@@ -433,6 +457,8 @@ class _ReportMenuState extends State<ReportMenu> {
             controller: reportText,
             maxLines: (MediaQuery.of(context).size.height * 0.01).round(),
             decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white.withAlpha(190),
               border: OutlineInputBorder(
                   borderSide:
                       BorderSide(width: 3, color: Colors.white.withAlpha(120))),
@@ -443,6 +469,7 @@ class _ReportMenuState extends State<ReportMenu> {
                   borderSide:
                       BorderSide(width: 3, color: Colors.white.withAlpha(60))),
               hintText: 'Convey your thoughts.',
+              hintStyle: const TextStyle(fontWeight: FontWeight.bold),
             ),
             validator: (String? value) {
               if (value == null || value.isEmpty) {
@@ -468,6 +495,10 @@ class _ReportMenuState extends State<ReportMenu> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all(Colors.white.withAlpha(240)),
+                  ),
                   onPressed: () async {
                     // Validate will return true if the form is valid, or false if
                     // the form is invalid.
@@ -488,7 +519,11 @@ class _ReportMenuState extends State<ReportMenu> {
                       });
                     }
                   },
-                  child: const Text('Submit'),
+                  child: const Text(
+                    'Submit',
+                    style: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -669,21 +704,6 @@ class _AdminPanelPickerState extends State<AdminPanelPicker> {
               ),
             ),
           ),
-          /*
-          CupertinoButton(
-            onPressed: () {
-              var updatedCard = widget.updateItem;
-              updatedCard[widget.updateElement] = widget.items[selectedIndex];
-              updateAnotherUser(
-                uID: widget.uID,
-                riotCard: updatedCard,
-              ).then((value) => Navigator.pop(context));
-            },
-            child: const Text(
-              "Select",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),*/
         ],
       ),
     );
@@ -887,9 +907,56 @@ class _AdminUsersState extends State<AdminUsers> {
                                             icon:
                                                 const Icon(Icons.credit_card)),
                                         IconButton(
-                                            onPressed: () {},
-                                            icon:
-                                                const Icon(Icons.no_accounts)),
+                                            onPressed: () {
+                                              showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return AlertDialog(
+                                                      scrollable: true,
+                                                      title: const Text(
+                                                        "Change User Status",
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      content: Column(
+                                                        children: [
+                                                          Text(
+                                                            snapshot.data!
+                                                                    .docs[index]
+                                                                ['userName'],
+                                                            style: const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontSize: 16),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 24,
+                                                          ),
+                                                          AdminUpdateUserType(
+                                                            uID: doc[index]
+                                                                ['id'],
+                                                            items: const [
+                                                              'user',
+                                                              'banned',
+                                                              'admin'
+                                                            ],
+                                                            initialItem: doc[
+                                                                    index]
+                                                                ['userType'],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  });
+                                            },
+                                            icon: const Icon(
+                                                Icons.account_tree_outlined)),
                                       ],
                                     ),
                                   ],
@@ -1045,6 +1112,95 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
               )),
         ),
       ],
+    );
+  }
+}
+
+class AdminUpdateUserType extends StatefulWidget {
+  final List<String> items;
+  final String uID;
+  final String initialItem;
+  const AdminUpdateUserType({
+    Key? key,
+    required this.items,
+    required this.uID,
+    required this.initialItem,
+  }) : super(key: key);
+
+  @override
+  State<AdminUpdateUserType> createState() => _AdminUpdateUserTypeState();
+}
+
+class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
+  int initialItemIndex = 0;
+  late FixedExtentScrollController _scrollController;
+  int selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    initialItemIndex = widget.items.indexOf(widget.initialItem);
+    _scrollController =
+        FixedExtentScrollController(initialItem: initialItemIndex);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width * 0.36,
+            height: MediaQuery.of(context).size.height * 0.1,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(120),
+                color: Colors.transparent),
+            child: Column(
+              children: [
+                CupertinoPicker(
+                  scrollController: _scrollController,
+                  diameterRatio: 1,
+                  backgroundColor: Colors.transparent,
+                  itemExtent: 64,
+                  onSelectedItemChanged: (int index) {
+                    setState(() {
+                      selectedIndex = index;
+                    });
+                  },
+                  children: List.generate(
+                    widget.items.length,
+                    (index) => Center(
+                      child: Text(
+                        widget.items[index],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: index == initialItemIndex
+                              ? Colors.red
+                              : Colors.black,
+                          fontWeight: index == initialItemIndex
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          CupertinoButton(
+            child: const Text(
+              "Apply",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  color: Colors.purple),
+            ),
+            onPressed: () {
+              updateAnotherUser(
+                      uID: widget.uID, userType: widget.items[selectedIndex])
+                  .then((value) => Navigator.pop(context));
+            },
+          ),
+        ],
+      ),
     );
   }
 }
