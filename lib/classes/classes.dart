@@ -18,6 +18,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riot/themes/themes.dart' as themes;
 
 class User {
+  /// User types are superadmin, admin, banned, user, deleted
   String id;
   final String userType;
   final String userName;
@@ -105,9 +106,15 @@ class LocalException {
   }
 }
 
-class NavigationDrawer extends StatelessWidget {
-  const NavigationDrawer({Key? key}) : super(key: key);
+class NavigationDrawer extends StatefulWidget {
+  const NavigationDrawer({super.key});
 
+  @override
+  State<NavigationDrawer> createState() => _NavigationDrawerState();
+}
+
+class _NavigationDrawerState extends State<NavigationDrawer> {
+  bool _loaded = true;
   @override
   Widget build(BuildContext context) => Drawer(
           child: Container(
@@ -142,34 +149,40 @@ class NavigationDrawer extends StatelessWidget {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  //NetworkImage(snapshot.data!.get('pp'))
                   return const Column(
                     children: [
-                      CircularProgressIndicator(),
-                      Text("NO CONNECTION")
+                      //CircularProgressIndicator(),
                     ],
                   );
                 }
+                Image.network(
+                  snapshot.data!.get('pp'),
+                  errorBuilder: (context, error, stackTrace) {
+                    setState(() {
+                      _loaded = false;
+                    });
+                    return const CircularProgressIndicator();
+                  },
+                );
 
                 return Container(
                   padding: EdgeInsets.only(
                       top: 24 + MediaQuery.of(context).padding.top, bottom: 24),
                   child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 64,
-                        child: Image.network(
-                          snapshot.data!.get('pp'),
-                          errorBuilder: (BuildContext context, Object exception,
-                              StackTrace? stackTrace) {
-                            return const CircleAvatar(
-                              radius: 64,
+                      _loaded
+                          ? CircleAvatar(
+                              radius:
+                                  MediaQuery.of(context).size.height * 0.115,
                               backgroundImage:
-                                  AssetImage('assets/images/default-pp.jpg'),
-                            );
-                          },
-                        ),
-                      ),
+                                  NetworkImage(snapshot.data!.get('pp')),
+                            )
+                          : CircleAvatar(
+                              radius:
+                                  MediaQuery.of(context).size.height * 0.115,
+                              backgroundImage: const AssetImage(
+                                  'assets/images/default-pp.jpg'),
+                            ),
                       const SizedBox(height: 24),
                       Text(
                         "Hello, ${snapshot.data!.get('userName') ?? ''}",
@@ -203,7 +216,8 @@ class NavigationDrawer extends StatelessWidget {
               child: Wrap(
                 runSpacing: 8,
                 children: [
-                  userData!["userType"] == "admin"
+                  userData!["userType"] == "admin" ||
+                          userData["userType"] == "superadmin"
                       ? generateMenuItem(
                           context: context,
                           text: "Admin Panel",
@@ -730,6 +744,10 @@ class _AdminUsersState extends State<AdminUsers> {
   Widget build(BuildContext context) {
     final deviceHeight = MediaQuery.of(context).size.height;
     final deviceWidth = MediaQuery.of(context).size.width;
+    Map currentUser = {};
+    getUserData().then((value) {
+      currentUser = value;
+    });
     return Padding(
         padding: EdgeInsets.fromLTRB(
             deviceWidth * 0.02, 0, deviceWidth * 0.02, deviceHeight * 0.00),
@@ -912,47 +930,68 @@ class _AdminUsersState extends State<AdminUsers> {
                                                   context: context,
                                                   builder:
                                                       (BuildContext context) {
-                                                    return AlertDialog(
-                                                      scrollable: true,
-                                                      title: const Text(
-                                                        "Change User Status",
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                      ),
-                                                      content: Column(
-                                                        children: [
-                                                          Text(
-                                                            snapshot.data!
-                                                                    .docs[index]
-                                                                ['userName'],
-                                                            style: const TextStyle(
+                                                    if (currentUser[
+                                                            'userType'] !=
+                                                        'superadmin') {
+                                                      return const AlertDialog(
+                                                          scrollable: true,
+                                                          title: Text(
+                                                            "User Status can only be modified by superadmin.",
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            style: TextStyle(
                                                                 fontWeight:
                                                                     FontWeight
-                                                                        .w600,
-                                                                fontSize: 16),
+                                                                        .bold),
                                                           ),
-                                                          const SizedBox(
-                                                            height: 24,
-                                                          ),
-                                                          AdminUpdateUserType(
-                                                            uID: doc[index]
-                                                                ['id'],
-                                                            items: const [
-                                                              'user',
-                                                              'banned',
-                                                              'admin'
-                                                            ],
-                                                            initialItem: doc[
-                                                                    index]
-                                                                ['userType'],
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    );
+                                                          content: Column());
+                                                    } else if (currentUser[
+                                                            'userType'] ==
+                                                        'superadmin') {
+                                                      return AlertDialog(
+                                                        scrollable: true,
+                                                        title: const Text(
+                                                          "Change User Status",
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        content: Column(
+                                                          children: [
+                                                            Text(
+                                                              snapshot.data!
+                                                                          .docs[
+                                                                      index]
+                                                                  ['userName'],
+                                                              style: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontSize: 16),
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 24,
+                                                            ),
+                                                            AdminUpdateUserType(
+                                                              uID: doc[index]
+                                                                  ['id'],
+                                                              items: const [
+                                                                'user',
+                                                                'banned',
+                                                                'admin'
+                                                              ],
+                                                              initialItem: doc[
+                                                                      index]
+                                                                  ['userType'],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }
+                                                    return const Wrap();
                                                   });
                                             },
                                             icon: const Icon(
@@ -1202,5 +1241,57 @@ class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
         ],
       ),
     );
+  }
+}
+
+class DeleteAccount extends StatefulWidget {
+  const DeleteAccount({super.key});
+
+  @override
+  State<DeleteAccount> createState() => _DeleteAccountState();
+}
+
+class _DeleteAccountState extends State<DeleteAccount> {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+        onPressed: () {
+          getUserData().then(
+            (value) {
+              var updatedCard = value['riotCard'];
+              updatedCard['inOrOut'] = 'out';
+              updatedCard['riotCardStatus'] = 'inactive';
+              synchronizeRiotCards(value['id'], value['userName'], updatedCard);
+              updateUser(userType: 'deleted', riotCard: updatedCard)
+                  .then((value) {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const SignIn()));
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SignIn()),
+                    (route) => false);
+
+                AuthCredential credential = EmailAuthProvider.credential(
+                    email: 'anil.budak@metu.edu.tr', password: '***REMOVED***');
+
+                try {
+                  FirebaseAuth.instance.currentUser
+                      ?.reauthenticateWithCredential(credential);
+                  FirebaseAuth.instance.currentUser!.delete();
+                  // Now you can perform the sensitive operation
+                } catch (e) {
+                  // Handle reauthentication errors
+                  //print("Reauthentication failed: $e");
+                }
+
+                final text = notificationBar(
+                  text: 'Your account has been successfully deleted :(',
+                );
+                ScaffoldMessenger.of(context).showSnackBar(text);
+              });
+            },
+          );
+        },
+        icon: const Icon(Icons.delete));
   }
 }

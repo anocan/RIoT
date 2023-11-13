@@ -9,7 +9,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:riot/classes/storage.dart';
 import 'package:riot/pages/home.dart';
 import 'package:riot/pages/sign_in.dart';
 import 'package:riot/classes/classes.dart' as rcc;
@@ -139,18 +138,19 @@ Future updateUser({
   if (forSignUp) {
     // Initialize User
     final user = rcc.User(
-      userType: "user",
-      userName: userName!,
-      email: email!,
-      id: docUser.id,
-    );
+        userType: "user",
+        userName: userName!,
+        email: email!,
+        id: docUser.id,
+        pp: "https://firebasestorage.googleapis.com/v0/b/riot-4n4n1f.appspot.com/o/serverData%2Fassets%2Fimages%2Fdefault-pp.jpg?alt=media&token=145c43cf-fa02-42be-8fbf-c626beaf1fd5");
     final json = user.toJson();
     await docUser.set(json);
 
     // Upload and set the default profile-picture
+    /*
     ByteData byteData = await rootBundle.load('assets/images/default-pp.jpg');
     Uint8List img = byteData.buffer.asUint8List();
-    await StoreData().saveData(file: img);
+    await StoreData().saveData(file: img);*/
 
     return 1;
   }

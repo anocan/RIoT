@@ -122,6 +122,11 @@ class _CreditsState extends State<Credits> {
                               onTap: () => launch(
                                   'https://www.linkedin.com/in/anilbudak/')),
                         ),
+                        Image.asset(
+                          "assets/gifs/nyan-cat-nyan.gif",
+                          height: 125.0,
+                          width: 125.0,
+                        ),
                       ],
                     ),
                   ),

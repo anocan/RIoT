@@ -16,6 +16,12 @@ class StoreData {
     return downloadUrl;
   }
 
+  Future<String> getUploadedUrl(String filePath) async {
+    final ref = FirebaseStorage.instance.ref().child(filePath);
+    var url = await ref.getDownloadURL();
+    return url;
+  }
+
   Future<String> saveData({required Uint8List file}) async {
     String resp = "error";
     try {

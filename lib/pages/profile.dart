@@ -17,6 +17,7 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  bool _loaded = true;
   var scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -74,6 +75,23 @@ class _ProfileState extends State<Profile> {
               return const CircularProgressIndicator();
             }
 
+            Image.network(
+              snapshot.data!.get('pp'),
+              errorBuilder: (context, error, stackTrace) {
+                setState(() {
+                  _loaded = false;
+                });
+                return const CircularProgressIndicator();
+              },
+            );
+
+            /*
+            final serverDefaultPP = StoreData()
+                .getUploadedUrl('serverData/assets/images/default-pp.jpg')
+                .then((value) {
+              print(value);
+            });*/
+
             return Container(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
@@ -107,25 +125,23 @@ class _ProfileState extends State<Profile> {
                                   bottom: 0),
                               child: Column(
                                 children: [
-                                  CircleAvatar(
-                                    radius: MediaQuery.of(context).size.height *
-                                        0.115,
-                                    child: Image.network(
-                                      snapshot.data!.get('pp'),
-                                      errorBuilder: (BuildContext context,
-                                          Object exception,
-                                          StackTrace? stackTrace) {
-                                        return CircleAvatar(
+                                  _loaded
+                                      ? CircleAvatar(
+                                          radius: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.115,
+                                          backgroundImage: NetworkImage(
+                                              snapshot.data!.get('pp')),
+                                        )
+                                      : CircleAvatar(
                                           radius: MediaQuery.of(context)
                                                   .size
                                                   .height *
                                               0.115,
                                           backgroundImage: const AssetImage(
                                               'assets/images/default-pp.jpg'),
-                                        );
-                                      },
-                                    ),
-                                  ),
+                                        ),
                                   const SizedBox(height: 24),
                                 ],
                               ),
@@ -196,6 +212,7 @@ class _ProfileState extends State<Profile> {
                             mutable: true,
                             updateItem: "dob",
                             context: context),
+                        const rcc.DeleteAccount(),
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.05,
                         )
