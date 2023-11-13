@@ -122,6 +122,16 @@ class _CreditsState extends State<Credits> {
                               onTap: () => launch(
                                   'https://www.linkedin.com/in/anilbudak/')),
                         ),
+                        Center(
+                          child: InkWell(
+                              child: const Text(
+                                'Github Page (https://github.com/anocan)',
+                                style: TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              onTap: () => launch('https://github.com/anocan')),
+                        ),
                         Image.asset(
                           "assets/gifs/nyan-cat-nyan.gif",
                           height: 125.0,

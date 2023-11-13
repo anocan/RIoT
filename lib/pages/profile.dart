@@ -81,10 +81,9 @@ class _ProfileState extends State<Profile> {
                 setState(() {
                   _loaded = false;
                 });
-                return const CircularProgressIndicator();
+                return const Text("");
               },
             );
-
             /*
             final serverDefaultPP = StoreData()
                 .getUploadedUrl('serverData/assets/images/default-pp.jpg')
@@ -127,6 +126,12 @@ class _ProfileState extends State<Profile> {
                                 children: [
                                   _loaded
                                       ? CircleAvatar(
+                                          onBackgroundImageError:
+                                              (exception, stackTrace) {
+                                            setState(() {
+                                              _loaded = false;
+                                            });
+                                          },
                                           radius: MediaQuery.of(context)
                                                   .size
                                                   .height *
@@ -212,7 +217,9 @@ class _ProfileState extends State<Profile> {
                             mutable: true,
                             updateItem: "dob",
                             context: context),
-                        const rcc.DeleteAccount(),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        const rcc.DeleteAccountButton(),
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.05,
                         )

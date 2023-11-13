@@ -161,7 +161,9 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                     setState(() {
                       _loaded = false;
                     });
-                    return const CircularProgressIndicator();
+                    return const CircleAvatar(
+                      radius: 0,
+                    );
                   },
                 );
 
@@ -172,6 +174,12 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                     children: [
                       _loaded
                           ? CircleAvatar(
+                              onBackgroundImageError: (exception, stackTrace) {
+                                setState(() {
+                                  print("a");
+                                  _loaded = false;
+                                });
+                              },
                               radius:
                                   MediaQuery.of(context).size.height * 0.115,
                               backgroundImage:
@@ -531,6 +539,16 @@ class _ReportMenuState extends State<ReportMenu> {
                         "status": "Active",
                         "date": DateTime.now().toString(),
                       });
+                      if (context.mounted) {
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (_) => const Home()),
+                            (route) => false);
+                        final text = notificationBar(
+                          text: "Your report has been succesfuly sent",
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(text);
+                      }
                     }
                   },
                   child: const Text(
@@ -1244,54 +1262,153 @@ class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
   }
 }
 
-class DeleteAccount extends StatefulWidget {
-  const DeleteAccount({super.key});
+class DeleteAccountButton extends StatefulWidget {
+  const DeleteAccountButton({super.key});
 
   @override
-  State<DeleteAccount> createState() => _DeleteAccountState();
+  _DeleteAccountButtonState createState() => _DeleteAccountButtonState();
 }
 
-class _DeleteAccountState extends State<DeleteAccount> {
+class _DeleteAccountButtonState extends State<DeleteAccountButton> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-        onPressed: () {
-          getUserData().then(
-            (value) {
-              var updatedCard = value['riotCard'];
-              updatedCard['inOrOut'] = 'out';
-              updatedCard['riotCardStatus'] = 'inactive';
-              synchronizeRiotCards(value['id'], value['userName'], updatedCard);
-              updateUser(userType: 'deleted', riotCard: updatedCard)
-                  .then((value) {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => const SignIn()));
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SignIn()),
-                    (route) => false);
+    return ElevatedButton(
+      onPressed: () {
+        _showDeleteAccountDialog(context);
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red, // Set button color to red
+        minimumSize: const Size(double.infinity, 50), // Make the button wide
+      ),
+      child: const Text(
+        'Delete Account',
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
 
-                AuthCredential credential = EmailAuthProvider.credential(
-                    email: 'anil.budak@metu.edu.tr', password: '***REMOVED***');
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    final TextEditingController passwordTextController =
+        TextEditingController();
+    final TextEditingController emailTextController = TextEditingController();
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey,
+          title: const Text(
+            'Enter Credentials',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const SizedBox(
+                height: 15,
+              ),
+              authTextField(
+                  "Email", Icons.email_outlined, false, emailTextController),
+              const SizedBox(
+                height: 20,
+              ),
+              authTextField(
+                  "Password", Icons.lock_outline, true, passwordTextController),
+              const SizedBox(
+                height: 10,
+              ),
+              const Text(
+                  "*Your account will be deleted and your RIoT card will be deactivated from the RIoT system."),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  AuthCredential credential = EmailAuthProvider.credential(
+                      email: emailTextController.text,
+                      password: passwordTextController.text);
 
-                try {
-                  FirebaseAuth.instance.currentUser
-                      ?.reauthenticateWithCredential(credential);
-                  FirebaseAuth.instance.currentUser!.delete();
-                  // Now you can perform the sensitive operation
-                } catch (e) {
-                  // Handle reauthentication errors
-                  //print("Reauthentication failed: $e");
-                }
+                  _deleteAccount(credential);
+                  //Navigator.of(context).pop(); // Close the dialog
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
-                final text = notificationBar(
-                  text: 'Your account has been successfully deleted :(',
-                );
-                ScaffoldMessenger.of(context).showSnackBar(text);
-              });
-            },
-          );
+  String extractErrorMessage(String errorMessage) {
+    // Find the first occurrence of '[' and ']'
+    int startIndex = errorMessage.indexOf('[');
+    int endIndex = errorMessage.indexOf(']');
+
+    // Check if both '[' and ']' are present and '[' comes before ']'
+    if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
+      // Extract the substring excluding the square bracket part
+      return errorMessage.substring(endIndex + 1).trim();
+    } else {
+      // Return the original message if square brackets are not found
+      return errorMessage;
+    }
+  }
+
+  // Replace this with your actual logic for deleting the account
+  void _deleteAccount(AuthCredential credential) async {
+    try {
+      await FirebaseAuth.instance.currentUser
+          ?.reauthenticateWithCredential(credential);
+
+      // User is succesfuly reauthenticate
+      getUserData().then(
+        (value) {
+          var updatedCard = value['riotCard'];
+          updatedCard['inOrOut'] = 'out';
+          updatedCard['riotCardStatus'] = 'inactive';
+          synchronizeRiotCards(value['id'], value['userName'], updatedCard);
+          updateUser(userType: 'deleted', riotCard: updatedCard).then((value) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const SignIn()));
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const SignIn()),
+                (route) => false);
+
+            final text = notificationBar(
+              text: 'Your account has been successfully deleted :(',
+            );
+            ScaffoldMessenger.of(context).showSnackBar(text);
+          }).then((value) {
+            FirebaseAuth.instance.currentUser!.delete();
+          });
         },
-        icon: const Icon(Icons.delete));
+      );
+    } on FirebaseAuthException catch (e) {
+      final text = notificationBar(
+        text: extractErrorMessage(e.toString()),
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(text);
+      }
+
+      // Handle reauthentication errors
+      //print("Reauthentication failed: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up controllers when the widget is disposed
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }
