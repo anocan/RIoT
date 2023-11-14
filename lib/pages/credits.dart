@@ -119,8 +119,8 @@ class _CreditsState extends State<Credits> {
                                     color: Colors.blue,
                                     fontWeight: FontWeight.bold),
                               ),
-                              onTap: () => launch(
-                                  'https://www.linkedin.com/in/anilbudak/')),
+                              onTap: () => launchUrl(Uri.parse(
+                                  'https://www.linkedin.com/in/anilbudak/'))),
                         ),
                         Center(
                           child: InkWell(
@@ -130,7 +130,8 @@ class _CreditsState extends State<Credits> {
                                     color: Colors.blue,
                                     fontWeight: FontWeight.bold),
                               ),
-                              onTap: () => launch('https://github.com/anocan')),
+                              onTap: () => launchUrl(
+                                  Uri.parse('https://github.com/anocan'))),
                         ),
                         Image.asset(
                           "assets/gifs/nyan-cat-nyan.gif",

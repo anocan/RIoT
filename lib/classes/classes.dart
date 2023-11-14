@@ -2,6 +2,7 @@
 /// Custom
 /// Classes
 /// (rcc)
+library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -161,9 +162,7 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                     setState(() {
                       _loaded = false;
                     });
-                    return const CircleAvatar(
-                      radius: 0,
-                    );
+                    throw ("error");
                   },
                 );
 
@@ -174,20 +173,14 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                     children: [
                       _loaded
                           ? CircleAvatar(
-                              onBackgroundImageError: (exception, stackTrace) {
-                                setState(() {
-                                  print("a");
-                                  _loaded = false;
-                                });
-                              },
-                              radius:
-                                  MediaQuery.of(context).size.height * 0.115,
                               backgroundImage:
                                   NetworkImage(snapshot.data!.get('pp')),
+                              onBackgroundImageError:
+                                  (exception, stackTrace) {},
+                              radius: MediaQuery.of(context).size.height * 0.09,
                             )
                           : CircleAvatar(
-                              radius:
-                                  MediaQuery.of(context).size.height * 0.115,
+                              radius: MediaQuery.of(context).size.height * 0.09,
                               backgroundImage: const AssetImage(
                                   'assets/images/default-pp.jpg'),
                             ),
@@ -212,7 +205,9 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Display a loading indicator while data is being fetched
-            return const CircularProgressIndicator();
+            return const SizedBox(
+              height: 0,
+            );
           } else if (snapshot.hasError) {
             // Handle the error
             return Text('Error: ${snapshot.error}');
@@ -290,8 +285,8 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
 class ElementPicker extends StatefulWidget {
   final List<String> items;
   final String updateItem;
-  const ElementPicker({Key? key, required this.items, required this.updateItem})
-      : super(key: key);
+  const ElementPicker(
+      {super.key, required this.items, required this.updateItem});
 
   @override
   State<ElementPicker> createState() => _ElementPickerState();
@@ -420,8 +415,7 @@ class CustomDropdownMenu extends StatefulWidget {
   final List<String> items;
   final Function onCallback;
   const CustomDropdownMenu(
-      {Key? key, required this.items, required this.onCallback})
-      : super(key: key);
+      {super.key, required this.items, required this.onCallback});
 
   @override
   State<CustomDropdownMenu> createState() => _CustomDropdownMenuState();
@@ -457,7 +451,7 @@ class _CustomDropdownMenuState extends State<CustomDropdownMenu> {
 }
 
 class ReportMenu extends StatefulWidget {
-  const ReportMenu({Key? key}) : super(key: key);
+  const ReportMenu({super.key});
 
   @override
   State<ReportMenu> createState() => _ReportMenuState();
@@ -567,17 +561,15 @@ class _ReportMenuState extends State<ReportMenu> {
 }
 
 class HomeElement extends StatefulWidget {
-  final Stream stream;
   final String labData;
   final String description;
   final Icon icon;
   const HomeElement({
-    Key? key,
-    required this.stream,
+    super.key,
     required this.labData,
     required this.description,
     required this.icon,
-  }) : super(key: key);
+  });
 
   @override
   State<HomeElement> createState() => _HomeElementState();
@@ -591,50 +583,40 @@ class _HomeElementState extends State<HomeElement> {
     return Padding(
       padding: EdgeInsets.fromLTRB(
           deviceWidth * 0.05, 0, deviceWidth * 0.05, deviceHeight * 0.04),
-      child: StreamBuilder(
-          stream: widget.stream,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const CircularProgressIndicator();
-            }
-            final labData = snapshot.data!.get(widget.labData);
-            return Container(
-              padding: EdgeInsets.fromLTRB(deviceWidth * 0.02,
-                  deviceHeight * 0.04, deviceWidth * 0.02, deviceHeight * 0.04),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(deviceHeight * 0.01),
-                border:
-                    Border.all(width: deviceWidth * 0.01, color: Colors.white),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.description,
-                    style: TextStyle(
-                        fontSize: deviceWidth * 0.035,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  Row(
-                    children: [
-                      widget.icon,
-                      SizedBox(
-                        width: deviceWidth * 0.02,
-                      ),
-                      Text(
-                        "$labData",
-                        style: TextStyle(
-                            fontSize: deviceWidth * 0.08,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            );
-          }),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(deviceWidth * 0.02, deviceHeight * 0.04,
+            deviceWidth * 0.02, deviceHeight * 0.04),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.circular(deviceHeight * 0.01),
+          border: Border.all(width: deviceWidth * 0.01, color: Colors.white),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              widget.description,
+              style: TextStyle(
+                  fontSize: deviceWidth * 0.035, fontWeight: FontWeight.bold),
+            ),
+            Row(
+              children: [
+                widget.icon,
+                SizedBox(
+                  width: deviceWidth * 0.02,
+                ),
+                Text(
+                  widget.labData,
+                  style: TextStyle(
+                      fontSize: deviceWidth * 0.08,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
     );
   }
 }
@@ -655,14 +637,13 @@ class AdminPanelPicker extends StatefulWidget {
   final Function(String data, String dataType) updateParent;
   final Map<String, dynamic> updateItem;
   const AdminPanelPicker(
-      {Key? key,
+      {super.key,
       required this.items,
       required this.uID,
       required this.updateElement,
       required this.initialItem,
       required this.updateParent,
-      required this.updateItem})
-      : super(key: key);
+      required this.updateItem});
 
   @override
   State<AdminPanelPicker> createState() => _AdminPanelPickerState();
@@ -747,11 +728,11 @@ class AdminUsers extends StatefulWidget {
   final String description;
   final Icon icon;
   const AdminUsers({
-    Key? key,
+    super.key,
     required this.stream,
     required this.description,
     required this.icon,
-  }) : super(key: key);
+  });
 
   @override
   State<AdminUsers> createState() => _AdminUsersState();
@@ -1031,10 +1012,10 @@ class AdminRiotCardController extends StatefulWidget {
   final dynamic document;
   final int index;
   const AdminRiotCardController({
-    Key? key,
+    super.key,
     required this.document,
     required this.index,
-  }) : super(key: key);
+  });
 
   @override
   State<AdminRiotCardController> createState() =>
@@ -1178,11 +1159,11 @@ class AdminUpdateUserType extends StatefulWidget {
   final String uID;
   final String initialItem;
   const AdminUpdateUserType({
-    Key? key,
+    super.key,
     required this.items,
     required this.uID,
     required this.initialItem,
-  }) : super(key: key);
+  });
 
   @override
   State<AdminUpdateUserType> createState() => _AdminUpdateUserTypeState();
@@ -1266,7 +1247,7 @@ class DeleteAccountButton extends StatefulWidget {
   const DeleteAccountButton({super.key});
 
   @override
-  _DeleteAccountButtonState createState() => _DeleteAccountButtonState();
+  State<DeleteAccountButton> createState() => _DeleteAccountButtonState();
 }
 
 class _DeleteAccountButtonState extends State<DeleteAccountButton> {

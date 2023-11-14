@@ -2,6 +2,7 @@
 /// Custom
 /// Themes
 /// (rct)
+library;
 
 import 'package:riot/widgets/widgets.dart';
 

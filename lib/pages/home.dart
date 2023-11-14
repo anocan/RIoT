@@ -100,24 +100,40 @@ class _HomeState extends State<Home> {
                   0, MediaQuery.of(context).size.height * 0.2, 0, 0),
               child: Column(
                 children: [
-                  rcc.HomeElement(
-                    stream: FirebaseFirestore.instance
-                        .collection('labData')
-                        .doc('lab-people')
-                        .snapshots(),
-                    labData: "labPeople",
-                    description: "Number of people",
-                    icon: const Icon(Icons.people_alt_outlined),
-                  ),
-                  rcc.HomeElement(
-                    stream: FirebaseFirestore.instance
-                        .collection('labData')
-                        .doc('lab-water')
-                        .snapshots(),
-                    labData: "labWater",
-                    description: "Amount of water left",
-                    icon: const Icon(Icons.water_drop_outlined),
-                  )
+                  StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('labData')
+                          .doc('lab-data')
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const Column(
+                            children: [
+                              //CircularProgressIndicator(),
+                            ],
+                          );
+                        }
+
+                        return Column(
+                          children: [
+                            rcc.HomeElement(
+                              labData: snapshot.data!.get("labPeople"),
+                              description: "Number of people",
+                              icon: const Icon(Icons.people_alt_outlined),
+                            ),
+                            rcc.HomeElement(
+                              labData: snapshot.data!.get("labWater"),
+                              description: "Amount of water left",
+                              icon: const Icon(Icons.water_drop_outlined),
+                            ),
+                            rcc.HomeElement(
+                              labData: snapshot.data!.get("labCO2"),
+                              description: "CO2 percentage",
+                              icon: const Icon(Icons.co2_outlined),
+                            ),
+                          ],
+                        );
+                      })
                 ],
               ),
             )),
