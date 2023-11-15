@@ -539,7 +539,7 @@ class _ReportMenuState extends State<ReportMenu> {
                             MaterialPageRoute(builder: (_) => const Home()),
                             (route) => false);
                         final text = notificationBar(
-                          text: "Your report has been succesfuly sent",
+                          text: "Your report has been succesfuly sent.",
                         );
                         ScaffoldMessenger.of(context).showSnackBar(text);
                       }
