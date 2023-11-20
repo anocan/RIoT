@@ -115,7 +115,7 @@ class NavigationDrawer extends StatefulWidget {
 }
 
 class _NavigationDrawerState extends State<NavigationDrawer> {
-  bool _loaded = true;
+  final bool _loaded = true;
   @override
   Widget build(BuildContext context) => Drawer(
           child: Container(
@@ -159,9 +159,7 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                 Image.network(
                   snapshot.data!.get('pp'),
                   errorBuilder: (context, error, stackTrace) {
-                    setState(() {
-                      _loaded = false;
-                    });
+                    setState(() {});
                     throw ("error");
                   },
                 );
@@ -170,6 +168,7 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                   padding: EdgeInsets.only(
                       top: 24 + MediaQuery.of(context).padding.top, bottom: 24),
                   child: Column(
+                    // BUGGED
                     children: [
                       _loaded
                           ? CircleAvatar(
@@ -1134,7 +1133,14 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
             updateAnotherUser(
                     uID: widget.document[widget.index]['id'],
                     riotCard: updatedCard)
-                .then((value) => Navigator.pop(context));
+                .then((value) {
+              final text = notificationBar(
+                text: "RIoT card successfuly modified.",
+              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(text);
+              }
+            }).then((value) => Navigator.pop(context));
           },
           child: Container(
               padding: const EdgeInsets.all(8),
@@ -1232,9 +1238,29 @@ class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
                   color: Colors.purple),
             ),
             onPressed: () {
-              updateAnotherUser(
-                      uID: widget.uID, userType: widget.items[selectedIndex])
-                  .then((value) => Navigator.pop(context));
+              if (widget.initialItem == "deleted") {
+                final text = notificationBar(
+                    text:
+                        "User account is deleted, user type cannot be modified.");
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context)
+                    ..removeCurrentSnackBar()
+                    ..showSnackBar(text);
+                  Navigator.pop(context);
+                }
+              } else {
+                if (context.mounted) {
+                  updateAnotherUser(
+                          uID: widget.uID,
+                          userType: widget.items[selectedIndex])
+                      .then((value) => Navigator.pop(context));
+                  final text = notificationBar(
+                      text: "User type is successfuly modified.");
+                  ScaffoldMessenger.of(context)
+                    ..removeCurrentSnackBar()
+                    ..showSnackBar(text);
+                }
+              }
             },
           ),
         ],
@@ -1351,11 +1377,7 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
       // User is succesfuly reauthenticate
       getUserData().then(
         (value) {
-          var updatedCard = value['riotCard'];
-          updatedCard['inOrOut'] = 'out';
-          updatedCard['riotCardStatus'] = 'inactive';
-          synchronizeRiotCards(value['id'], value['userName'], updatedCard);
-          updateUser(userType: 'deleted', riotCard: updatedCard).then((value) {
+          updateUser(userType: 'deleted').then((value) {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const SignIn()));
             Navigator.pushAndRemoveUntil(

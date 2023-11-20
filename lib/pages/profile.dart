@@ -157,8 +157,12 @@ class _ProfileState extends State<Profile> {
                                 child: IconButton(
                                     iconSize: 48,
                                     onPressed: () async {
-                                      final img = await selectImage();
-                                      await StoreData().saveData(file: img);
+                                      try {
+                                        final img = await selectImage();
+                                        await StoreData().saveData(file: img);
+                                      } catch (e) {
+                                        //print("Profile picture is unselected.");
+                                      }
                                     },
                                     icon: const Icon(Icons.add_a_photo_rounded),
                                     color: Colors.white)),
