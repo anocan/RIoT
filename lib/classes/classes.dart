@@ -343,7 +343,7 @@ class _ElementPickerState extends State<ElementPicker> {
                   updateUser(country: widget.items[selectedIndex]);
                   break;
               }
-              Navigator.pop(context);
+              Navigator.of(context).popUntil((route) => route.isFirst);
             },
             child: const Text(
               "Select",
@@ -397,7 +397,7 @@ class _DatePickerState extends State<DatePicker> {
               onPressed: () {
                 updateUser(
                     dob: selectedDate.toString().split(' ')[0].toString());
-                Navigator.pop(context);
+                Navigator.of(context).popUntil((route) => route.isFirst);
               },
               child: const Text(
                 "Select",
@@ -1164,7 +1164,8 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(text);
                   }
-                }).then((value) => Navigator.pop(context));
+                }).then((value) => Navigator.of(context)
+                        .popUntil((route) => route.isFirst));
               },
             );
           },
@@ -1275,7 +1276,7 @@ class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
                   ScaffoldMessenger.of(context)
                     ..removeCurrentSnackBar()
                     ..showSnackBar(text);
-                  Navigator.pop(context);
+                  Navigator.of(context).popUntil((route) => route.isFirst);
                 }
               } else {
                 if (context.mounted) {
@@ -1296,7 +1297,8 @@ class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
                   updateAnotherUser(
                           uID: widget.uID,
                           userType: widget.items[selectedIndex])
-                      .then((value) => Navigator.pop(context));
+                      .then((value) => Navigator.of(context)
+                          .popUntil((route) => route.isFirst));
                   final text = notificationBar(
                       text: "User type is successfuly modified.");
                   ScaffoldMessenger.of(context)
@@ -1675,7 +1677,7 @@ class _AdminDoorStatusState extends State<AdminDoorStatus> {
       await labData.doc('lab-data').update({
         'labDoor': doorStatus,
       }).then((value) {
-        Navigator.pop(context);
+        Navigator.of(context).popUntil((route) => route.isFirst);
 
         final text = notificationBar(
           text: 'RIoT door is successfuly $doorStatus.',
@@ -2030,7 +2032,7 @@ class _AdminToolsState extends State<AdminTools> {
         await usersCollection.doc(randomUserID).set(newUser.toJson());
       }
       if (context.mounted) {
-        Navigator.pop(context);
+        Navigator.of(context).popUntil((route) => route.isFirst);
         final text = notificationBar(
           text: '$count junk user data added successfully.',
         );
@@ -2260,7 +2262,7 @@ class _AdminToolsState extends State<AdminTools> {
         });
       }
       if (context.mounted) {
-        Navigator.pop(context);
+        Navigator.of(context).popUntil((route) => route.isFirst);
         final text = notificationBar(
           text: '$count junk data is/are added successfuly.',
         );

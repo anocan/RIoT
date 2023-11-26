@@ -502,7 +502,8 @@ Wrap generateProfileElement(
                                               ..removeCurrentSnackBar()
                                               ..showSnackBar(text);
                                           }
-                                          Navigator.pop(context);
+                                          Navigator.of(context).popUntil(
+                                              (route) => route.isFirst);
                                         },
                                         icon: const Icon(Icons.save_outlined),
                                       )),
