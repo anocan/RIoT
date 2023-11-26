@@ -795,64 +795,49 @@ Future updateAnotherUser({
   await docUser.set(json);
 }
 
-Future<Map> getRiotCards() async {
-  //final userId = FirebaseAuth.instance.currentUser!.uid;
-  final doc =
-      FirebaseFirestore.instance.collection('riotCards').doc('riot-cards');
-  final docSnapshot = await doc.get();
-  final data = docSnapshot.data() as Map;
-  return data;
-}
+Future<void> removePrevRiotCardInstance(String idToCheck) async {
+  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+      .collection('riotCards')
+      .where('id', isEqualTo: idToCheck)
+      .get();
 
-int searchRiotCards(String id, List<dynamic> list) {
-  for (int i = 0; i < list.length; i++) {
-    if (id == list[i]['id']) {
-      return i;
+  if (querySnapshot.docs.isNotEmpty) {
+    // Document with the specified ID exists
+    var firstDocData = querySnapshot.docs[0].data() as Map<String, dynamic>?;
+
+    if (firstDocData != null && firstDocData.containsKey('riotCardID')) {
+      String? prevRiotCardID = firstDocData['riotCardID'] as String?;
+
+      FirebaseFirestore.instance
+          .collection('riotCards')
+          .doc(prevRiotCardID)
+          .delete();
+    } else {
+      //print("object");
     }
   }
-  return -99; // initialization of riotCard
 }
 
-void synchronizeRiotCards(
-    String uID, String userName, dynamic updatedCard) async {
-  final doc =
-      FirebaseFirestore.instance.collection('riotCards').doc('riot-cards');
-  final value = await getRiotCards();
-  final List riotCardsList = value['riotCardList'];
-  final cardIndex = searchRiotCards(uID, riotCardsList);
+Future<void> synchronizeRiotCards(
+    String uID, String userName, String userType, dynamic updatedCard) async {
+  final docRiotCard = FirebaseFirestore.instance
+      .collection('riotCards')
+      .doc(updatedCard['riotCardID']);
 
-  //print(updatedCard);
-  if (cardIndex != -99) {
-    final userRiotCard = riotCardsList[cardIndex];
+  await removePrevRiotCardInstance(uID);
 
-    final riotCard = rcc.RiotCard(
-      id: uID,
-      inOrOut: updatedCard['inOrOut'] ?? userRiotCard['inOrOut'],
-      riotCardID: updatedCard['riotCardID'] ?? userRiotCard['riotCardID'],
-      riotCardStatus:
-          updatedCard['riotCardStatus'] ?? userRiotCard['riotCardStatus'],
-      userName: userRiotCard['userName'],
-    );
+  final riotCard = rcc.RiotCard(
+    id: uID,
+    inOrOut: updatedCard['inOrOut'],
+    riotCardID: updatedCard['riotCardID'],
+    riotCardStatus: updatedCard['riotCardStatus'],
+    userType: updatedCard['userType'],
+    userName: userName,
+  );
 
-    final updatedRiotCardsList = riotCardsList;
-    updatedRiotCardsList[cardIndex] = riotCard.toJson();
+  final json = riotCard.toJson();
 
-    final updatedRiotCardsMap = {'riotCardList': updatedRiotCardsList};
+  //final updatedRiotCardsMap = {'riotCardList': updatedRiotCardsList};
 
-    await doc.set(updatedRiotCardsMap);
-  } else {
-    final riotCard = rcc.RiotCard(
-      id: uID,
-      inOrOut: 'out',
-      riotCardID: updatedCard['riotCardID'],
-      riotCardStatus: updatedCard['riotCardStatus'],
-      userName: userName,
-    );
-    final updatedRiotCardsList = riotCardsList;
-    updatedRiotCardsList.add(riotCard.toJson());
-
-    final updatedRiotCardsMap = {'riotCardList': updatedRiotCardsList};
-
-    await doc.set(updatedRiotCardsMap);
-  }
+  await docRiotCard.set(json);
 }

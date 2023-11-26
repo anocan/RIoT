@@ -117,6 +117,11 @@ class _HomeState extends State<Home> {
                         return Column(
                           children: [
                             rcc.HomeElement(
+                              labData: snapshot.data!.get("labDoor"),
+                              description: "Status of lab door",
+                              icon: const Icon(Icons.door_front_door_outlined),
+                            ),
+                            rcc.HomeElement(
                               labData: snapshot.data!.get("labPeople"),
                               description: "Number of people",
                               icon: const Icon(Icons.people_alt_outlined),

@@ -77,11 +77,27 @@ class _AdminPanelState extends State<AdminPanel> {
                 MediaQuery.of(context).size.height * 0.2,
                 MediaQuery.of(context).size.width * 0.01,
                 0),
-            child: rcc.AdminUsers(
-              stream:
-                  FirebaseFirestore.instance.collection("users").snapshots(),
-              description: "User",
-              icon: const Icon(Icons.people_alt_outlined),
+            child: Column(
+              children: [
+                rcc.AdminDoorStatus(
+                  stream: FirebaseFirestore.instance
+                      .collection("labData")
+                      .doc("lab-data")
+                      .snapshots(),
+                ),
+                rcc.AdminUsers(
+                  stream: FirebaseFirestore.instance
+                      .collection("users")
+                      .snapshots(),
+                  description: "User",
+                  icon: const Icon(Icons.people_alt_outlined),
+                ),
+                rcc.AdminTools(
+                    stream: FirebaseFirestore.instance
+                        .collection("riotCards")
+                        .doc("riot-cards")
+                        .snapshots()),
+              ],
             ),
           ),
         ),

@@ -4,6 +4,7 @@
 /// (rcc)
 library;
 
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
@@ -77,6 +78,7 @@ class RiotCard {
   final String riotCardID;
   final String riotCardStatus;
   final String userName;
+  final String userType;
 
   RiotCard({
     this.id = '',
@@ -84,6 +86,7 @@ class RiotCard {
     this.riotCardID = '',
     this.riotCardStatus = '',
     this.userName = '',
+    this.userType = '',
   });
 
   Map<String, dynamic> toJson() => {
@@ -92,6 +95,7 @@ class RiotCard {
         'riotCardID': riotCardID,
         'riotCardStatus': riotCardStatus,
         'userName': userName,
+        'userType': userType
       };
 }
 
@@ -748,7 +752,7 @@ class _AdminUsersState extends State<AdminUsers> {
     });
     return Padding(
         padding: EdgeInsets.fromLTRB(
-            deviceWidth * 0.02, 0, deviceWidth * 0.02, deviceHeight * 0.00),
+            deviceWidth * 0.02, 0, deviceWidth * 0.02, deviceHeight * 0.02),
         child: StreamBuilder(
             stream: widget.stream,
             builder: (context, snapshot) {
@@ -761,7 +765,7 @@ class _AdminUsersState extends State<AdminUsers> {
                       deviceWidth * 0.0,
                       deviceHeight * 0.0,
                       deviceWidth * 0.0,
-                      deviceHeight * 0.0),
+                      deviceHeight * 0.01),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.rectangle,
@@ -784,172 +788,113 @@ class _AdminUsersState extends State<AdminUsers> {
                                 fontSize: 32),
                           ),
                         ),
-                        ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: snapshot.data!.docs.length,
-                            itemBuilder: (context, index) {
-                              var doc = snapshot.data!.docs;
-                              return Container(
-                                padding: EdgeInsets.fromLTRB(
-                                    deviceWidth * 0.0,
-                                    deviceHeight * 0.0,
-                                    deviceWidth * 0.0,
-                                    deviceHeight * 0.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.rectangle,
-                                  borderRadius: BorderRadius.circular(
-                                      deviceHeight * 0.01),
-                                  border: Border.all(
-                                      width: deviceWidth * 0.01,
-                                      color: Colors.white),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        widget.icon,
-                                        TextButton(
-                                            onPressed: () {
-                                              showDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    return AlertDialog(
-                                                      scrollable: true,
-                                                      title: const Text(
-                                                        "User Details",
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                      ),
-                                                      content: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                              "userName: ${doc[index]['userName']}\n"),
-                                                          Text(
-                                                              "id: ${doc[index]['id']}\n"),
-                                                          Text(
-                                                              "userType: ${doc[index]['userType']}\n"),
-                                                          Text(
-                                                              "email: ${doc[index]['email']}\n"),
-                                                          Text(
-                                                              "name: ${doc[index]['name']}\n"),
-                                                          Text(
-                                                              "phoneNumber: ${doc[index]['phoneNumber']}\n"),
-                                                          Text(
-                                                              "dob: ${doc[index]['dob']}\n"),
-                                                          Text(
-                                                              "gender: ${doc[index]['gender']}\n"),
-                                                          Text(
-                                                              "pp: ${doc[index]['pp']}\n"),
-                                                          Text(
-                                                              "riotCard: ${doc[index]['riotCard']}\n"),
-                                                          Text(
-                                                              "department: ${doc[index]['department']}\n"),
-                                                          Text(
-                                                              "country: ${doc[index]['country']}\n"),
-                                                          Text(
-                                                              "cot: ${doc[index]['cot']}\n"),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  });
-                                            },
-                                            child: Text(
-                                              doc[index]['userName'],
-                                              style: TextStyle(
-                                                  fontSize: deviceWidth * 0.04,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black),
-                                            )),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                            onPressed: () {
-                                              showDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    return AlertDialog(
-                                                      scrollable: true,
-                                                      title: const Text(
-                                                        "RIoT Card Details",
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                      ),
-                                                      content: Column(
-                                                        children: [
-                                                          Text(
-                                                            snapshot.data!
-                                                                    .docs[index]
-                                                                ['userName'],
-                                                            style: const TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontSize: 16),
-                                                          ),
-                                                          const SizedBox(
-                                                            height: 24,
-                                                          ),
-                                                          AdminRiotCardController(
-                                                            document: snapshot
-                                                                .data!.docs,
-                                                            index: index,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  });
-                                            },
-                                            icon:
-                                                const Icon(Icons.credit_card)),
-                                        IconButton(
-                                            onPressed: () {
-                                              showDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    if (currentUser[
-                                                            'userType'] !=
-                                                        'superadmin') {
-                                                      return const AlertDialog(
-                                                          scrollable: true,
-                                                          title: Text(
-                                                            "User Status can only be modified by superadmin.",
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                            style: TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
-                                                          content: Column());
-                                                    } else if (currentUser[
-                                                            'userType'] ==
-                                                        'superadmin') {
+                        SizedBox(
+                          height: deviceHeight * 0.4,
+                          child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: snapshot.data!.docs.length,
+                              itemBuilder: (context, index) {
+                                var doc = snapshot.data!.docs;
+                                return Container(
+                                  padding: EdgeInsets.fromLTRB(
+                                      deviceWidth * 0.0,
+                                      deviceHeight * 0.0,
+                                      deviceWidth * 0.0,
+                                      deviceHeight * 0.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.rectangle,
+                                    borderRadius: BorderRadius.circular(
+                                        deviceHeight * 0.01),
+                                    border: Border.all(
+                                        width: deviceWidth * 0.01,
+                                        color: Colors.white),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          widget.icon,
+                                          TextButton(
+                                              onPressed: () {
+                                                showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
                                                       return AlertDialog(
                                                         scrollable: true,
                                                         title: const Text(
-                                                          "Change User Status",
+                                                          "User Details",
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        content: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                                "userName: ${doc[index]['userName']}\n"),
+                                                            Text(
+                                                                "id: ${doc[index]['id']}\n"),
+                                                            Text(
+                                                                "userType: ${doc[index]['userType']}\n"),
+                                                            Text(
+                                                                "email: ${doc[index]['email']}\n"),
+                                                            Text(
+                                                                "name: ${doc[index]['name']}\n"),
+                                                            Text(
+                                                                "phoneNumber: ${doc[index]['phoneNumber']}\n"),
+                                                            Text(
+                                                                "dob: ${doc[index]['dob']}\n"),
+                                                            Text(
+                                                                "gender: ${doc[index]['gender']}\n"),
+                                                            Text(
+                                                                "pp: ${doc[index]['pp']}\n"),
+                                                            Text(
+                                                                "riotCard: ${doc[index]['riotCard']}\n"),
+                                                            Text(
+                                                                "department: ${doc[index]['department']}\n"),
+                                                            Text(
+                                                                "country: ${doc[index]['country']}\n"),
+                                                            Text(
+                                                                "cot: ${doc[index]['cot']}\n"),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    });
+                                              },
+                                              child: Text(
+                                                doc[index]['userName'],
+                                                style: TextStyle(
+                                                    fontSize:
+                                                        deviceWidth * 0.04,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black),
+                                              )),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                              onPressed: () {
+                                                showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return AlertDialog(
+                                                        scrollable: true,
+                                                        title: const Text(
+                                                          "RIoT Card Details",
                                                           textAlign:
                                                               TextAlign.center,
                                                           style: TextStyle(
@@ -973,33 +918,105 @@ class _AdminUsersState extends State<AdminUsers> {
                                                             const SizedBox(
                                                               height: 24,
                                                             ),
-                                                            AdminUpdateUserType(
-                                                              uID: doc[index]
-                                                                  ['id'],
-                                                              items: const [
-                                                                'user',
-                                                                'banned',
-                                                                'admin'
-                                                              ],
-                                                              initialItem: doc[
-                                                                      index]
-                                                                  ['userType'],
+                                                            AdminRiotCardController(
+                                                              document: snapshot
+                                                                  .data!.docs,
+                                                              index: index,
                                                             ),
                                                           ],
                                                         ),
                                                       );
-                                                    }
-                                                    return const Wrap();
-                                                  });
-                                            },
-                                            icon: const Icon(
-                                                Icons.account_tree_outlined)),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
+                                                    });
+                                              },
+                                              icon: const Icon(
+                                                  Icons.credit_card)),
+                                          IconButton(
+                                              onPressed: () {
+                                                showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      if (currentUser[
+                                                              'userType'] !=
+                                                          'superadmin') {
+                                                        return const AlertDialog(
+                                                            scrollable: true,
+                                                            title: Text(
+                                                              "User Status can only be modified by superadmin.",
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              style: TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                            content: Column());
+                                                      } else if (currentUser[
+                                                              'userType'] ==
+                                                          'superadmin') {
+                                                        return AlertDialog(
+                                                          scrollable: true,
+                                                          title: const Text(
+                                                            "Change User Status",
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
+                                                          content: Column(
+                                                            children: [
+                                                              Text(
+                                                                snapshot.data!
+                                                                            .docs[
+                                                                        index][
+                                                                    'userName'],
+                                                                style: const TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontSize:
+                                                                        16),
+                                                              ),
+                                                              const SizedBox(
+                                                                height: 24,
+                                                              ),
+                                                              AdminUpdateUserType(
+                                                                uID: doc[index]
+                                                                    ['id'],
+                                                                items: const [
+                                                                  'user',
+                                                                  'banned',
+                                                                  'admin'
+                                                                ],
+                                                                initialItem: doc[
+                                                                        index][
+                                                                    'userType'],
+                                                                riotCardID: doc[
+                                                                            index]
+                                                                        [
+                                                                        'riotCard']
+                                                                    [
+                                                                    'riotCardID'],
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        );
+                                                      }
+                                                      return const Wrap();
+                                                    });
+                                              },
+                                              icon: const Icon(
+                                                  Icons.account_tree_outlined)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                        ),
                       ],
                     ),
                   ));
@@ -1127,20 +1144,29 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
             var updatedCard = widget.document[widget.index]['riotCard'];
             updatedCard['riotCardID'] = riotCardIDState;
             updatedCard['riotCardStatus'] = riotCardStatusState;
+            updatedCard['userType'] = widget.document[widget.index]['userType'];
             updatedCard['inOrOut'] = inOrOutState;
-            synchronizeRiotCards(widget.document[widget.index]['id'],
-                widget.document[widget.index]['userName'], updatedCard);
-            updateAnotherUser(
-                    uID: widget.document[widget.index]['id'],
-                    riotCard: updatedCard)
-                .then((value) {
-              final text = notificationBar(
-                text: "RIoT card successfuly modified.",
-              );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(text);
-              }
-            }).then((value) => Navigator.pop(context));
+            synchronizeRiotCards(
+                    widget.document[widget.index]['id'],
+                    widget.document[widget.index]['userName'],
+                    widget.document[widget.index]['userType'],
+                    updatedCard)
+                .then(
+              (value) {
+                updatedCard.remove('userType');
+                updateAnotherUser(
+                        uID: widget.document[widget.index]['id'],
+                        riotCard: updatedCard)
+                    .then((value) {
+                  final text = notificationBar(
+                    text: "RIoT card successfuly modified.",
+                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(text);
+                  }
+                }).then((value) => Navigator.pop(context));
+              },
+            );
           },
           child: Container(
               padding: const EdgeInsets.all(8),
@@ -1164,11 +1190,13 @@ class AdminUpdateUserType extends StatefulWidget {
   final List<String> items;
   final String uID;
   final String initialItem;
+  final String riotCardID;
   const AdminUpdateUserType({
     super.key,
     required this.items,
     required this.uID,
     required this.initialItem,
+    this.riotCardID = "",
   });
 
   @override
@@ -1182,6 +1210,7 @@ class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
 
   @override
   Widget build(BuildContext context) {
+    //FirebaseFirestore.instance.collection("riotCard")
     initialItemIndex = widget.items.indexOf(widget.initialItem);
     _scrollController =
         FixedExtentScrollController(initialItem: initialItemIndex);
@@ -1250,6 +1279,20 @@ class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
                 }
               } else {
                 if (context.mounted) {
+                  try {
+                    final CollectionReference collectionReference =
+                        FirebaseFirestore.instance.collection("riotCards");
+                    collectionReference.doc(widget.riotCardID).update({
+                      "userType": widget.items[selectedIndex]
+                    }).whenComplete(() async {
+                      //print("Completed");
+                    }).catchError((e) {
+                      //print(e);
+                    });
+                  } catch (e) {
+                    //print(e);
+                  }
+
                   updateAnotherUser(
                           uID: widget.uID,
                           userType: widget.items[selectedIndex])
@@ -1368,7 +1411,6 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
     }
   }
 
-  // Replace this with your actual logic for deleting the account
   void _deleteAccount(AuthCredential credential) async {
     try {
       await FirebaseAuth.instance.currentUser
@@ -1413,5 +1455,876 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+}
+
+class AdminDoorStatus extends StatefulWidget {
+  final Stream stream;
+  const AdminDoorStatus({
+    super.key,
+    required this.stream,
+  });
+
+  @override
+  State<AdminDoorStatus> createState() => _AdminDoorStatusState();
+}
+
+class _AdminDoorStatusState extends State<AdminDoorStatus> {
+  @override
+  Widget build(BuildContext context) {
+    final deviceHeight = MediaQuery.of(context).size.height;
+    final deviceWidth = MediaQuery.of(context).size.width;
+    return Padding(
+        padding: EdgeInsets.fromLTRB(
+            deviceWidth * 0.02, 0, deviceWidth * 0.02, deviceHeight * 0.02),
+        child: StreamBuilder(
+            stream: widget.stream,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              }
+              final doorData = snapshot.data!.get("labDoor");
+
+              return Container(
+                  padding: EdgeInsets.fromLTRB(
+                      deviceWidth * 0.0,
+                      deviceHeight * 0.0,
+                      deviceWidth * 0.0,
+                      deviceHeight * 0.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(deviceHeight * 0.01),
+                    border: Border.all(
+                        width: deviceWidth * 0.01, color: Colors.white),
+                  ),
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
+                          child: Text(
+                            "RIoT Door",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                fontSize: 32),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.fromLTRB(
+                              deviceWidth * 0.0,
+                              deviceHeight * 0.0,
+                              deviceWidth * 0.0,
+                              deviceHeight * 0.01),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.rectangle,
+                            borderRadius:
+                                BorderRadius.circular(deviceHeight * 0.01),
+                            border: Border.all(
+                                width: deviceWidth * 0.01, color: Colors.white),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Flexible(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    _showVerifiyAccountDialog(
+                                        context, "locked");
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    shape: const BeveledRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(4))),
+                                    backgroundColor: doorData == "locked"
+                                        ? Colors.red
+                                        : Colors
+                                            .grey, // Set button color to red
+                                  ),
+                                  child: const Text(
+                                    'Lock Door',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              Flexible(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    _showVerifiyAccountDialog(
+                                        context, "unlocked");
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    shape: const BeveledRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(4))),
+                                    backgroundColor: doorData == "unlocked"
+                                        ? Colors.red
+                                        : Colors.grey,
+                                  ),
+                                  child: const Text(
+                                    'Unlock Door',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              Flexible(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    _showVerifiyAccountDialog(
+                                        context, "secured");
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    shape: const BeveledRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(4))),
+                                    backgroundColor: doorData == "secured"
+                                        ? Colors.red
+                                        : Colors.grey,
+                                  ),
+                                  child: const Text(
+                                    'Secure Door',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ));
+            }));
+  }
+
+  Future<void> _showVerifiyAccountDialog(
+      BuildContext context, String doorStatus) async {
+    final TextEditingController passwordTextController =
+        TextEditingController();
+    final TextEditingController emailTextController = TextEditingController();
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey,
+          title: const Text(
+            'Enter Credentials',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const SizedBox(
+                height: 15,
+              ),
+              authTextField(
+                  "Email", Icons.email_outlined, false, emailTextController),
+              const SizedBox(
+                height: 20,
+              ),
+              authTextField(
+                  "Password", Icons.lock_outline, true, passwordTextController),
+              const SizedBox(
+                height: 10,
+              ),
+              const Text(
+                  "*Your credentials are needed to ensure your account is authorized."),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  AuthCredential credential = EmailAuthProvider.credential(
+                      email: emailTextController.text,
+                      password: passwordTextController.text);
+
+                  _changeDoorStatus(credential, doorStatus);
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  'Apply',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _changeDoorStatus(AuthCredential credential, String doorStatus) async {
+    try {
+      await FirebaseAuth.instance.currentUser
+          ?.reauthenticateWithCredential(credential);
+
+      CollectionReference labData =
+          FirebaseFirestore.instance.collection('labData');
+      await labData.doc('lab-data').update({
+        'labDoor': doorStatus,
+      }).then((value) {
+        Navigator.pop(context);
+
+        final text = notificationBar(
+          text: 'RIoT door is successfuly $doorStatus.',
+        );
+        ScaffoldMessenger.of(context).showSnackBar(text);
+      });
+    } on FirebaseAuthException catch (e) {
+      final text = notificationBar(
+        text: extractErrorMessage(e.toString()),
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(text);
+      }
+    }
+  }
+
+  String extractErrorMessage(String errorMessage) {
+    // Find the first occurrence of '[' and ']'
+    int startIndex = errorMessage.indexOf('[');
+    int endIndex = errorMessage.indexOf(']');
+
+    // Check if both '[' and ']' are present and '[' comes before ']'
+    if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
+      // Extract the substring excluding the square bracket part
+      return errorMessage.substring(endIndex + 1).trim();
+    } else {
+      // Return the original message if square brackets are not found
+      return errorMessage;
+    }
+  }
+}
+
+class AdminTools extends StatefulWidget {
+  final Stream stream;
+  const AdminTools({
+    super.key,
+    required this.stream,
+  });
+
+  @override
+  State<AdminTools> createState() => _AdminToolsState();
+}
+
+class _AdminToolsState extends State<AdminTools> {
+  @override
+  Widget build(BuildContext context) {
+    final deviceHeight = MediaQuery.of(context).size.height;
+    final deviceWidth = MediaQuery.of(context).size.width;
+    return Padding(
+        padding: EdgeInsets.fromLTRB(
+            deviceWidth * 0.02, 0, deviceWidth * 0.02, deviceHeight * 0.02),
+        child: StreamBuilder(
+            stream: widget.stream,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              }
+
+              return Container(
+                  padding: EdgeInsets.fromLTRB(
+                      deviceWidth * 0.0,
+                      deviceHeight * 0.0,
+                      deviceWidth * 0.0,
+                      deviceHeight * 0.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(deviceHeight * 0.01),
+                    border: Border.all(
+                        width: deviceWidth * 0.01, color: Colors.white),
+                  ),
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
+                          child: Text(
+                            "Admin Tools",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                fontSize: 32),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.fromLTRB(
+                              deviceWidth * 0.0,
+                              deviceHeight * 0.0,
+                              deviceWidth * 0.0,
+                              deviceHeight * 0.01),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.rectangle,
+                            borderRadius:
+                                BorderRadius.circular(deviceHeight * 0.01),
+                            border: Border.all(
+                                width: deviceWidth * 0.01, color: Colors.white),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Column(
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      _showAddJunkDataDialog(context);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      shape: const BeveledRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(4))),
+                                      backgroundColor: Colors
+                                          .blue, // Set button color to red
+                                    ),
+                                    child: const Text(
+                                      'Add Junk RIoT Card Data',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      _showRemoveJunkDataDialog(context);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      shape: const BeveledRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(4))),
+                                      backgroundColor: Colors
+                                          .blue, // Set button color to red
+                                    ),
+                                    child: const Text(
+                                      'Remove Junk RIoT Card Data',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      _showAddJunkUserDataDialog(context);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      shape: const BeveledRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(4))),
+                                      backgroundColor: Colors
+                                          .blue, // Set button color to red
+                                    ),
+                                    child: const Text(
+                                      'Add & Remove Junk User Data',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ));
+            }));
+  }
+
+  Future<void> _showAddJunkUserDataDialog(BuildContext context) async {
+    int selectedCount = 1; // Initialize selected count
+    String selectedInOut = 'in'; // Initialize selected "in" or "out"
+    String selectedStatus = 'active'; // Initialize selected status
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey,
+          title: const Text(
+            'Add Junk User Data',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const SizedBox(
+                height: 15,
+              ),
+              const Text(
+                "Configure RIoT Card details below:",
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              CupertinoPicker(
+                diameterRatio: 1.5,
+                itemExtent: 32,
+                onSelectedItemChanged: (index) {
+                  selectedCount = index + 1; // Update selected count
+                },
+                children: List.generate(
+                  20,
+                  (index) => Text(
+                    '${index + 1}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              CupertinoPicker(
+                diameterRatio: 1.5,
+                itemExtent: 32,
+                onSelectedItemChanged: (index) {
+                  selectedInOut = index == 0 ? 'in' : 'out';
+                  // Update selected "in" or "out"
+                },
+                children: const <Widget>[
+                  Text(
+                    'in',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'out',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              CupertinoPicker(
+                itemExtent: 32,
+                onSelectedItemChanged: (index) {
+                  if (index == 0) {
+                    selectedStatus = 'active';
+                  } else if (index == 1) {
+                    selectedStatus = 'inactive';
+                  } else {
+                    selectedStatus = 'deleted';
+                  }
+                },
+                children: const <Widget>[
+                  Text(
+                    'active',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'inactive',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'deleted',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "*Adds selected and configured amount of junk user data to users.",
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Use selectedCount, selectedInOut, selectedStatus for your logic
+                  _addJunkUserDataToUsers(
+                    selectedCount,
+                    selectedInOut,
+                    selectedStatus,
+                  );
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  'Add',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  _removeAllJunkUserData();
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  'Remove All Junk Data',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _addJunkUserDataToUsers(
+      int count, String inOrOut, String riotCardStatus) async {
+    const chars =
+        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    Random rnd = Random();
+
+    String getRandomString(int length) =>
+        String.fromCharCodes(Iterable.generate(
+            length, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
+
+    try {
+      CollectionReference usersCollection =
+          FirebaseFirestore.instance.collection('users');
+      for (int i = 0; i < count; i++) {
+        final randomUserID = 'TEST${getRandomString(24)}';
+        User newUser = User(
+          userName: getRandomString(6).toLowerCase(),
+          email: '${getRandomString(8).toLowerCase()}@example.com',
+          userType: 'user',
+          id: randomUserID,
+          dob: "TEST",
+          riotCard: {
+            'inOrOut': inOrOut,
+            'riotCardID': getRandomString(6).toLowerCase(),
+            'riotCardStatus': riotCardStatus,
+          },
+        );
+
+        await usersCollection.doc(randomUserID).set(newUser.toJson());
+      }
+      if (context.mounted) {
+        Navigator.pop(context);
+        final text = notificationBar(
+          text: '$count junk user data added successfully.',
+        );
+        ScaffoldMessenger.of(context).showSnackBar(text);
+      }
+    } on FirebaseAuthException catch (e) {
+      final text = notificationBar(
+        text: extractErrorMessage(e.toString()),
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(text);
+      }
+    }
+  }
+
+  Future<void> _removeAllJunkUserData() async {
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('dob', isEqualTo: 'TEST')
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        for (QueryDocumentSnapshot doc in snapshot.docs) {
+          await doc.reference.delete();
+        }
+        if (context.mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          final text = notificationBar(
+            text: 'All junk user data is removed.',
+          );
+          ScaffoldMessenger.of(context).showSnackBar(text);
+        }
+      } else {
+        if (context.mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          final text = notificationBar(
+            text: 'No junk user data to be removed.',
+          );
+          ScaffoldMessenger.of(context).showSnackBar(text);
+        }
+      }
+    } catch (e) {
+      // Handle errors if any
+    }
+  }
+
+  Future<void> _showRemoveJunkDataDialog(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey,
+          title: const Text(
+            'Remove All Junk Data',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const SizedBox(
+                height: 15,
+              ),
+              const Text("*Removes all of the junk data from riotCards."),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Use selectedCount, selectedInOut, selectedStatus for your logic
+                  _removeAllJunkData();
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  'Remove',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showAddJunkDataDialog(BuildContext context) async {
+    int selectedCount = 1; // Initialize selected count
+    String selectedInOut = 'in'; // Initialize selected "in" or "out"
+    String selectedStatus = 'active'; // Initialize selected status
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey,
+          title: const Text(
+            'Add Junk Data',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const SizedBox(
+                height: 15,
+              ),
+              CupertinoPicker(
+                diameterRatio: 1.5,
+                itemExtent: 32,
+                onSelectedItemChanged: (index) {
+                  selectedCount = index + 1; // Update selected count
+                },
+                children: List.generate(
+                    20,
+                    (index) => Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        )),
+              ),
+              const SizedBox(height: 16),
+              CupertinoPicker(
+                diameterRatio: 1.5,
+                itemExtent: 32,
+                onSelectedItemChanged: (index) {
+                  selectedInOut = index == 0
+                      ? 'in'
+                      : 'out'; // Update selected "in" or "out"
+                },
+                children: const <Widget>[
+                  Text(
+                    'in',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'out',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              CupertinoPicker(
+                itemExtent: 32,
+                onSelectedItemChanged: (index) {
+                  if (index == 0) {
+                    selectedStatus = 'active';
+                  } else if (index == 1) {
+                    selectedStatus = 'inactive';
+                  } else {
+                    selectedStatus = 'deleted';
+                  }
+                },
+                children: const <Widget>[
+                  Text(
+                    'active',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'inactive',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'deleted',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                  "*Adds selected and configured amount of junk data to riotCards."),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Use selectedCount, selectedInOut, selectedStatus for your logic
+                  _addJunkDataToRiotCards(
+                    selectedCount,
+                    selectedInOut,
+                    selectedStatus,
+                  );
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  'Add',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _addJunkDataToRiotCards(
+      int count, String inOrOut, String riotCardStatus) async {
+    const chars =
+        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    Random rnd = Random();
+
+    String getRandomString(int length) =>
+        String.fromCharCodes(Iterable.generate(
+            length, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
+
+    try {
+      CollectionReference cardData =
+          FirebaseFirestore.instance.collection('riotCards');
+      for (int i = 0; i < count; i++) {
+        final randomRiotCardID = getRandomString(8).toLowerCase();
+        await cardData.doc(randomRiotCardID).set({
+          "id": getRandomString(28),
+          "inOrOut": inOrOut,
+          "riotCardID": randomRiotCardID,
+          "riotCardStatus": riotCardStatus,
+          "userType": "user",
+          "userName": getRandomString(6).toLowerCase(),
+          "test": "TEST",
+        });
+      }
+      if (context.mounted) {
+        Navigator.pop(context);
+        final text = notificationBar(
+          text: '$count junk data is/are added successfuly.',
+        );
+        ScaffoldMessenger.of(context).showSnackBar(text);
+      }
+    } on FirebaseAuthException catch (e) {
+      final text = notificationBar(
+        text: extractErrorMessage(e.toString()),
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(text);
+      }
+    }
+  }
+
+  Future<void> _removeAllJunkData() async {
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('riotCards')
+          .where('test', isEqualTo: 'TEST')
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        for (QueryDocumentSnapshot doc in snapshot.docs) {
+          await FirebaseFirestore.instance
+              .collection('riotCards')
+              .doc(doc.id)
+              .delete();
+        }
+        if (context.mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          final text = notificationBar(
+            text: 'All junk is removed from the riotCards.',
+          );
+          ScaffoldMessenger.of(context).showSnackBar(text);
+        }
+        //print('Documents deleted successfully.');
+      } else {
+        //print('No documents found with the given condition.');
+        if (context.mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          final text = notificationBar(
+            text: 'No junk data to be removed.',
+          );
+          ScaffoldMessenger.of(context).showSnackBar(text);
+        }
+      }
+    } catch (e) {
+      //print(e);
+    }
+  }
+
+  String extractErrorMessage(String errorMessage) {
+    // Find the first occurrence of '[' and ']'
+    int startIndex = errorMessage.indexOf('[');
+    int endIndex = errorMessage.indexOf(']');
+
+    // Check if both '[' and ']' are present and '[' comes before ']'
+    if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
+      // Extract the substring excluding the square bracket part
+      return errorMessage.substring(endIndex + 1).trim();
+    } else {
+      // Return the original message if square brackets are not found
+      return errorMessage;
+    }
   }
 }

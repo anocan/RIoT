@@ -52,7 +52,7 @@ Row pdpaButton(BuildContext context) {
    - We are not liable for any damages or losses resulting from the use of the RIoT project platform.
 
 6. Governing Law:\n
-   - These Terms of Service are governed by and construed in accordance with the laws of [Your Jurisdiction].
+   - These Terms of Service are governed by and construed in accordance with the laws of KVKK (Personal Data Protection Law).
 
 7. Changes to Terms:\n
    - We reserve the right to modify these Terms of Service at any time.
