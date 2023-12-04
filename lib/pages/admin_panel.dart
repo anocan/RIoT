@@ -97,6 +97,14 @@ class _AdminPanelState extends State<AdminPanel> {
                         .collection("riotCards")
                         .doc("riot-cards")
                         .snapshots()),
+                rcc.AdminLogs(
+                  stream: FirebaseFirestore.instance
+                      .collection("logs")
+                      .orderBy('logID', descending: false)
+                      .snapshots(),
+                  description: "Log",
+                  icon: const Icon(Icons.document_scanner_outlined),
+                ),
               ],
             ),
           ),

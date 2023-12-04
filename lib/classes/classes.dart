@@ -4,6 +4,7 @@
 /// (rcc)
 library;
 
+import 'dart:convert';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -876,10 +877,21 @@ class _AdminUsersState extends State<AdminUsers> {
                                               child: Text(
                                                 doc[index]['userName'],
                                                 style: TextStyle(
+                                                    decoration: doc[index]
+                                                                ['userType'] ==
+                                                            "deleted"
+                                                        ? TextDecoration
+                                                            .lineThrough
+                                                        : TextDecoration.none,
                                                     fontSize:
                                                         deviceWidth * 0.04,
                                                     fontWeight: FontWeight.bold,
-                                                    color: Colors.black),
+                                                    color: doc[index]
+                                                                    ['riotCard']
+                                                                ['inOrOut'] ==
+                                                            "in"
+                                                        ? Colors.green
+                                                        : Colors.black),
                                               )),
                                         ],
                                       ),
@@ -2328,5 +2340,168 @@ class _AdminToolsState extends State<AdminTools> {
       // Return the original message if square brackets are not found
       return errorMessage;
     }
+  }
+}
+
+class AdminLogs extends StatefulWidget {
+  final Stream stream;
+  final String description;
+  final Icon icon;
+  const AdminLogs({
+    super.key,
+    required this.stream,
+    required this.description,
+    required this.icon,
+  });
+
+  @override
+  State<AdminLogs> createState() => _AdminLogsState();
+}
+
+class _AdminLogsState extends State<AdminLogs> {
+  @override
+  Widget build(BuildContext context) {
+    final deviceHeight = MediaQuery.of(context).size.height;
+    final deviceWidth = MediaQuery.of(context).size.width;
+    return Padding(
+        padding: EdgeInsets.fromLTRB(
+            deviceWidth * 0.02, 0, deviceWidth * 0.02, deviceHeight * 0.02),
+        child: StreamBuilder(
+            stream: widget.stream,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              }
+              //final labData = snapshot.data!.get(widget.labData);
+              return Container(
+                  padding: EdgeInsets.fromLTRB(
+                      deviceWidth * 0.0,
+                      deviceHeight * 0.0,
+                      deviceWidth * 0.0,
+                      deviceHeight * 0.01),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(deviceHeight * 0.01),
+                    border: Border.all(
+                        width: deviceWidth * 0.01, color: Colors.white),
+                  ),
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
+                          child: Text(
+                            "Logs",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                fontSize: 32),
+                          ),
+                        ),
+                        SizedBox(
+                          height: deviceHeight * 0.4,
+                          child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: snapshot.data!.docs.length > 14
+                                  ? 14
+                                  : snapshot.data!.docs.length,
+                              itemBuilder: (context, index) {
+                                var doc = snapshot.data!.docs;
+                                int reversedIndex =
+                                    snapshot.data!.docs.length - 1 - index;
+
+                                Map<String, dynamic> jsonData = {};
+
+                                doc[reversedIndex]
+                                    .data()!
+                                    .forEach((key, value) {
+                                  if (value is! Timestamp) {
+                                    jsonData[key] = value;
+                                  }
+                                });
+                                var prettifyJson =
+                                    const JsonEncoder.withIndent('  ')
+                                        .convert(jsonData);
+
+                                return Container(
+                                  padding: EdgeInsets.fromLTRB(
+                                      deviceWidth * 0.0,
+                                      deviceHeight * 0.0,
+                                      deviceWidth * 0.0,
+                                      deviceHeight * 0.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.rectangle,
+                                    borderRadius: BorderRadius.circular(
+                                        deviceHeight * 0.01),
+                                    border: Border.all(
+                                        width: deviceWidth * 0.01,
+                                        color: Colors.white),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          widget.icon,
+                                          TextButton(
+                                              onPressed: () {
+                                                showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return AlertDialog(
+                                                        scrollable: true,
+                                                        title: const Text(
+                                                          "Logs",
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        content: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                                "Map of entries: $prettifyJson\n"),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    });
+                                              },
+                                              child: Text(
+                                                doc[reversedIndex].id,
+                                                style: TextStyle(
+                                                    decoration:
+                                                        TextDecoration.none,
+                                                    fontSize:
+                                                        deviceWidth * 0.04,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black),
+                                              )),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                        ),
+                        const Text(
+                            "*Only shows the last 14 items which are ordered by date."),
+                      ],
+                    ),
+                  ));
+            }));
   }
 }
