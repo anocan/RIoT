@@ -1176,6 +1176,11 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(text);
                   }
+                }).then((value) async {
+                  await FirebaseFirestore.instance
+                      .collection('labData')
+                      .doc('lab-metadata')
+                      .update({'updateStatus': 'outOfDate'});
                 }).then((value) => Navigator.of(context)
                         .popUntil((route) => route.isFirst));
               },
