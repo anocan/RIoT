@@ -2278,6 +2278,10 @@ class _AdminToolsState extends State<AdminTools> {
           "test": "TEST",
         });
       }
+      await FirebaseFirestore.instance
+          .collection('labData')
+          .doc('lab-metadata')
+          .update({'updateStatus': 'outOfDate'});
       if (context.mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
         final text = notificationBar(
@@ -2309,6 +2313,10 @@ class _AdminToolsState extends State<AdminTools> {
               .doc(doc.id)
               .delete();
         }
+        await FirebaseFirestore.instance
+            .collection('labData')
+            .doc('lab-metadata')
+            .update({'updateStatus': 'outOfDate'});
         if (context.mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
           final text = notificationBar(
