@@ -1129,6 +1129,13 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
           ],
         ),
         Row(
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.width * 0.01,
+            )
+          ],
+        ),
+        Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -1238,7 +1245,7 @@ class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
         children: [
           Container(
             width: MediaQuery.of(context).size.width * 0.36,
-            height: MediaQuery.of(context).size.height * 0.1,
+            height: MediaQuery.of(context).size.height * 0.12,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(120),
                 color: Colors.transparent),
@@ -1819,6 +1826,9 @@ class _AdminToolsState extends State<AdminTools> {
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
+                                  SizedBox(
+                                    height: deviceWidth * 0.01,
+                                  ),
                                   ElevatedButton(
                                     onPressed: () {
                                       _showRemoveJunkDataDialog(context);
@@ -1837,6 +1847,9 @@ class _AdminToolsState extends State<AdminTools> {
                                           fontWeight: FontWeight.bold),
                                       textAlign: TextAlign.center,
                                     ),
+                                  ),
+                                  SizedBox(
+                                    height: deviceWidth * 0.01,
                                   ),
                                   ElevatedButton(
                                     onPressed: () {

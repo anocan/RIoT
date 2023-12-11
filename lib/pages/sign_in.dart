@@ -53,6 +53,7 @@ class _SignInState extends State<SignIn> {
                           _passwordTextController, context);
                     }),
                     signUpButton(),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.2),
                   ],
                 ))),
       ),
