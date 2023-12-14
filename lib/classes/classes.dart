@@ -280,13 +280,13 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                           });
                         } on PlatformException catch (e) {
                           if (e.code == 'firebase_auth/keychain-error') {
-                            print('Error details: ${e.details}');
+                            //print('Error details: ${e.details}');
 
                             // Print NSError.userInfo dictionary
                             if (e.details != null &&
                                 e.details['NSErrorUserInfo'] != null) {
-                              print('UserInfo dictionary:');
-                              print(e.details['NSErrorUserInfo']);
+                              //print('UserInfo dictionary:');
+                              //print(e.details['NSErrorUserInfo']);
                             }
                           }
                         }
