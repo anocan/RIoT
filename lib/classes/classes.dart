@@ -20,6 +20,7 @@ import 'package:riot/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riot/themes/themes.dart' as themes;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class User {
   /// User types are superadmin, admin, banned, user, deleted
@@ -121,7 +122,6 @@ class NavigationDrawer extends StatefulWidget {
 }
 
 class _NavigationDrawerState extends State<NavigationDrawer> {
-  final bool _loaded = true;
   @override
   Widget build(BuildContext context) => Drawer(
           child: Container(
@@ -176,19 +176,13 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                   child: Column(
                     // BUGGED
                     children: [
-                      _loaded
-                          ? CircleAvatar(
-                              backgroundImage:
-                                  NetworkImage(snapshot.data!.get('pp')),
-                              onBackgroundImageError:
-                                  (exception, stackTrace) {},
-                              radius: MediaQuery.of(context).size.height * 0.09,
-                            )
-                          : CircleAvatar(
-                              radius: MediaQuery.of(context).size.height * 0.09,
-                              backgroundImage: const AssetImage(
-                                  'assets/images/default-pp.jpg'),
-                            ),
+                      CircleAvatar(
+                        foregroundImage: NetworkImage(snapshot.data!.get('pp')),
+                        onForegroundImageError: (exception, stackTrace) {},
+                        radius: MediaQuery.of(context).size.height * 0.09,
+                        backgroundImage:
+                            const AssetImage("assets/images/default-pp.jpg"),
+                      ),
                       const SizedBox(height: 24),
                       Text(
                         "Hello, ${snapshot.data!.get('userName') ?? ''}",
@@ -204,9 +198,14 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
         ),
       );
 
+  Future<String?> getPreferences() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userType');
+  }
+
   Widget buildMenuItems(BuildContext context) {
-    return FutureBuilder<Map>(
-        future: getUserData(),
+    return FutureBuilder<String?>(
+        future: getPreferences(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Display a loading indicator while data is being fetched
@@ -217,15 +216,14 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
             // Handle the error
             return Text('Error: ${snapshot.error}');
           } else {
-            final userData = snapshot.data;
+            final String? userType = snapshot.data;
 
             return Container(
               padding: const EdgeInsets.all(24),
               child: Wrap(
                 runSpacing: 8,
                 children: [
-                  userData!["userType"] == "admin" ||
-                          userData["userType"] == "superadmin"
+                  userType == "admin" || userType == "superadmin"
                       ? generateMenuItem(
                           context: context,
                           text: "Admin Panel",
@@ -292,7 +290,7 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                         }
                       },
                       isLogOut: true),
-                  const Text("v1.0.0"),
+                  const Text("v1.0.1"),
                 ],
               ),
             );
@@ -1185,7 +1183,18 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
                     widget.document[widget.index]['userName'],
                     widget.document[widget.index]['userType'],
                     updatedCard)
-                .then(
+                .onError((error, stackTrace) {
+              //print("No riotCard found in the database to be updated.");
+              final text = notificationBar(
+                text:
+                    "No riotCard found, first enter riotCardID to create a riotCard instance.",
+              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(text);
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              }
+              throw LocalException(exception: "No riotCard found.");
+            }).then(
               (value) {
                 updatedCard.remove('userType');
                 updateAnotherUser(

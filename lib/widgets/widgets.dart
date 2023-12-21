@@ -15,6 +15,8 @@ import 'package:riot/pages/sign_in.dart';
 import 'package:riot/classes/classes.dart' as rcc;
 import 'dart:math' as math;
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 ///
 Color randomColor() {
   final color =
@@ -300,6 +302,10 @@ Future signInAccount(TextEditingController emailController,
             ScaffoldMessenger.of(context).showSnackBar(text);
           }
         } else {
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          final userData = await rcc.getUserData();
+          prefs.setString('userType', userData['userType']);
+          //prefs.setString('userType', userData['userType']);
           if (context.mounted) {
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => const Home()));

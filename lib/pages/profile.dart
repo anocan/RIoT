@@ -1,8 +1,8 @@
 import 'dart:ui';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:riot/themes/themes.dart' as themes;
 import 'package:riot/classes/classes.dart' as rcc;
 import 'package:riot/widgets/widgets.dart';
@@ -17,7 +17,6 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  bool _loaded = true;
   var scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -74,16 +73,6 @@ class _ProfileState extends State<Profile> {
             if (!snapshot.hasData) {
               return const CircularProgressIndicator();
             }
-
-            Image.network(
-              snapshot.data!.get('pp'),
-              errorBuilder: (context, error, stackTrace) {
-                setState(() {
-                  _loaded = false;
-                });
-                return const Text("");
-              },
-            );
             /*
             final serverDefaultPP = StoreData()
                 .getUploadedUrl('serverData/assets/images/default-pp.jpg')
@@ -124,29 +113,16 @@ class _ProfileState extends State<Profile> {
                                   bottom: 0),
                               child: Column(
                                 children: [
-                                  _loaded
-                                      ? CircleAvatar(
-                                          onBackgroundImageError:
-                                              (exception, stackTrace) {
-                                            setState(() {
-                                              _loaded = false;
-                                            });
-                                          },
-                                          radius: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.115,
-                                          backgroundImage: NetworkImage(
-                                              snapshot.data!.get('pp')),
-                                        )
-                                      : CircleAvatar(
-                                          radius: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.115,
-                                          backgroundImage: const AssetImage(
-                                              'assets/images/default-pp.jpg'),
-                                        ),
+                                  CircleAvatar(
+                                    foregroundImage:
+                                        NetworkImage(snapshot.data!.get('pp')),
+                                    onForegroundImageError:
+                                        (exception, stackTrace) {},
+                                    radius: MediaQuery.of(context).size.height *
+                                        0.09,
+                                    backgroundImage: const AssetImage(
+                                        "assets/images/default-pp.jpg"),
+                                  ),
                                   const SizedBox(height: 24),
                                 ],
                               ),
@@ -161,7 +137,17 @@ class _ProfileState extends State<Profile> {
                                         final img = await selectImage();
                                         await StoreData().saveData(file: img);
                                       } catch (e) {
-                                        //print("Profile picture is unselected.");
+                                        if (e is PlatformException) {
+                                          if (context.mounted) {
+                                            final text = notificationBar(
+                                                text: e.message.toString());
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(text);
+                                            //print("Profile picture is unselected.");
+                                          }
+                                        } else {
+                                          //print(e);
+                                        }
                                       }
                                     },
                                     icon: const Icon(Icons.add_a_photo_rounded),
