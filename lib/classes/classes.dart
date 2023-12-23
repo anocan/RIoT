@@ -1173,21 +1173,12 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
         ),
         GestureDetector(
           onTap: () async {
-            var exit = 0;
             var updatedCard = widget.document[widget.index]['riotCard'];
             updatedCard['riotCardID'] = riotCardIDState;
             updatedCard['riotCardStatus'] = riotCardStatusState;
             updatedCard['userType'] = widget.document[widget.index]['userType'];
             updatedCard['inOrOut'] = inOrOutState;
-            await synchronizeRiotCards(
-                    widget.document[widget.index]['id'],
-                    widget.document[widget.index]['userName'],
-                    widget.document[widget.index]['userType'],
-                    updatedCard)
-                .onError((error, stackTrace) {
-              exit = 1;
-            });
-            if (exit == 1) {
+            if (widget.document[widget.index]['riotCard']['riotCardID'] == "") {
               final text = notificationBar(
                 text: "No riotCard found in the database to be updated.",
               );
@@ -1197,6 +1188,12 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
               }
               return;
             }
+            await synchronizeRiotCards(
+                    widget.document[widget.index]['id'],
+                    widget.document[widget.index]['userName'],
+                    widget.document[widget.index]['userType'],
+                    updatedCard)
+                .onError((error, stackTrace) {});
 
             updatedCard.remove('userType');
             await updateAnotherUser(
