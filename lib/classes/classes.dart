@@ -290,7 +290,7 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                         }
                       },
                       isLogOut: true),
-                  const Text("v1.0.1"),
+                  const Text("v1.0.2"),
                 ],
               ),
             );
@@ -1172,50 +1172,50 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
           ],
         ),
         GestureDetector(
-          onTap: () {
+          onTap: () async {
+            var exit = 0;
             var updatedCard = widget.document[widget.index]['riotCard'];
             updatedCard['riotCardID'] = riotCardIDState;
             updatedCard['riotCardStatus'] = riotCardStatusState;
             updatedCard['userType'] = widget.document[widget.index]['userType'];
             updatedCard['inOrOut'] = inOrOutState;
-            synchronizeRiotCards(
+            await synchronizeRiotCards(
                     widget.document[widget.index]['id'],
                     widget.document[widget.index]['userName'],
                     widget.document[widget.index]['userType'],
                     updatedCard)
                 .onError((error, stackTrace) {
-              //print("No riotCard found in the database to be updated.");
+              exit = 1;
+            });
+            if (exit == 1) {
               final text = notificationBar(
-                text:
-                    "No riotCard found, first enter riotCardID to create a riotCard instance.",
+                text: "No riotCard found in the database to be updated.",
               );
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(text);
                 Navigator.of(context).popUntil((route) => route.isFirst);
               }
-              throw LocalException(exception: "No riotCard found.");
-            }).then(
-              (value) {
-                updatedCard.remove('userType');
-                updateAnotherUser(
-                        uID: widget.document[widget.index]['id'],
-                        riotCard: updatedCard)
-                    .then((value) {
-                  final text = notificationBar(
-                    text: "RIoT card successfuly modified.",
-                  );
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(text);
-                  }
-                }).then((value) async {
-                  await FirebaseFirestore.instance
-                      .collection('labData')
-                      .doc('lab-metadata')
-                      .update({'updateStatus': 'outOfDate'});
-                }).then((value) => Navigator.of(context)
-                        .popUntil((route) => route.isFirst));
-              },
-            );
+              return;
+            }
+
+            updatedCard.remove('userType');
+            await updateAnotherUser(
+                    uID: widget.document[widget.index]['id'],
+                    riotCard: updatedCard)
+                .then((value) {
+              final text = notificationBar(
+                text: "RIoT card successfuly modified.",
+              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(text);
+              }
+            }).then((value) async {
+              await FirebaseFirestore.instance
+                  .collection('labData')
+                  .doc('lab-metadata')
+                  .update({'updateStatus': 'outOfDate'});
+            }).then((value) =>
+                    Navigator.of(context).popUntil((route) => route.isFirst));
           },
           child: Container(
               padding: const EdgeInsets.all(8),
@@ -1467,25 +1467,40 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
           ?.reauthenticateWithCredential(credential);
 
       // User is succesfuly reauthenticate
-      getUserData().then(
-        (value) {
-          updateUser(userType: 'deleted').then((value) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const SignIn()));
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const SignIn()),
-                (route) => false);
 
-            final text = notificationBar(
-              text: 'Your account has been successfully deleted :(',
-            );
-            ScaffoldMessenger.of(context).showSnackBar(text);
-          }).then((value) {
-            FirebaseAuth.instance.currentUser!.delete();
+      updateUser(userType: 'deleted').then((value) {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => const SignIn()));
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const SignIn()),
+            (route) => false);
+
+        final text = notificationBar(
+          text: 'Your account has been successfully deleted :(',
+        );
+        ScaffoldMessenger.of(context).showSnackBar(text);
+      }).then((_) {
+        getUserData().then((value) {
+          final riotCardID = value['riotCard']['riotCardID'];
+          final userID = value['id'];
+          if (riotCardID != "") {
+            FirebaseFirestore.instance
+                .collection("riotCards")
+                .doc(riotCardID)
+                .update({"userType": "deleted"});
+          }
+          FirebaseFirestore.instance.collection("users").doc(userID).update({
+            "riotCard": {
+              "inOrOut": "out",
+              "riotCardID": riotCardID,
+              "riotCardStatus": "inactive",
+            }
           });
-        },
-      );
+        });
+      }).then((value) {
+        FirebaseAuth.instance.currentUser!.delete();
+      });
     } on FirebaseAuthException catch (e) {
       final text = notificationBar(
         text: extractErrorMessage(e.toString()),
