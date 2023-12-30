@@ -290,7 +290,7 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                         }
                       },
                       isLogOut: true),
-                  const Text("v1.0.2"),
+                  const Text("v1.0.3"),
                 ],
               ),
             );
@@ -1178,7 +1178,8 @@ class _AdminRiotCardControllerState extends State<AdminRiotCardController> {
             updatedCard['riotCardStatus'] = riotCardStatusState;
             updatedCard['userType'] = widget.document[widget.index]['userType'];
             updatedCard['inOrOut'] = inOrOutState;
-            if (widget.document[widget.index]['riotCard']['riotCardID'] == "") {
+            if (widget.document[widget.index]['riotCard']['riotCardID'] == "" &&
+                riotCardIDState == "") {
               final text = notificationBar(
                 text: "No riotCard found in the database to be updated.",
               );
@@ -1326,6 +1327,15 @@ class _AdminUpdateUserTypeState extends State<AdminUpdateUserType> {
               } else {
                 if (context.mounted) {
                   try {
+                    if (widget.riotCardID == "") {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                      final text = notificationBar(
+                          text: "Please first create a RIoT Card instance.");
+                      ScaffoldMessenger.of(context)
+                        ..removeCurrentSnackBar()
+                        ..showSnackBar(text);
+                      return;
+                    }
                     final CollectionReference collectionReference =
                         FirebaseFirestore.instance.collection("riotCards");
                     collectionReference.doc(widget.riotCardID).update({
