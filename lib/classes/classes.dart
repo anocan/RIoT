@@ -290,7 +290,7 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                         }
                       },
                       isLogOut: true),
-                  const Text("v1.0.3"),
+                  const Text("v1.0.4"),
                 ],
               ),
             );

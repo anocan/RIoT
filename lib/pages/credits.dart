@@ -103,7 +103,7 @@ class _CreditsState extends State<Credits> {
                     child: Column(
                       children: <Widget>[
                         Text(
-                          "This app and project RIoT are realized by Anıl Budak with special thanks to Deniz Petek and Volkan Taştan.",
+                          "This app and project RIoT are realized by Anıl Budak with special thanks to Deniz Petek, Volkan Taştan, and Kayra Toprak Say.",
                           style: TextStyle(
                               color: Colors.white,
                               fontSize:
